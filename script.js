@@ -1,581 +1,413 @@
-// -------------------
-// Chanda Run: ক্ষমতার পেছনে দৌড়
-// -------------------
-// All logic: vanilla JS. Asset = placeholder. Bengali interface.
-// Modular approach. Game state, rendering, UI, event, audio, leaderboard, shop, memes, calculator.
-// -------------------
+// Chanda Run: Professional Vanilla JS "3D-feel" Endless Runner
+// Modular JS: Game engine, Audio/Video Manager, UI, Powerups, 2.5D Canvas rendering
 
-// ==== Settings ====
-const GAME_WIDTH = 400, GAME_HEIGHT = 600;
+// =========== Audio/Video ==============
+const audio = {
+    bg: document.getElementById("bg-music"),
+    coin: document.getElementById("sfx-chanda"),
+    jump: document.getElementById("sfx-jump"),
+    hit: document.getElementById("sfx-hit"),
+    powerup: document.getElementById("sfx-powerup"),
+    redjuly: document.getElementById("sfx-redjuly"),
+};
+function playAudio(aud) {
+    if (state.sound && audio[aud]) {
+        audio[aud].currentTime = 0;
+        audio[aud].play();
+    }
+}
+function playVoiceLine(text) {
+    if (!state.sound) return;
+    // If you have custom voice audio, play here! Otherwise, use speechSynthesis.
+    if ('speechSynthesis' in window) {
+        let utter = new SpeechSynthesisUtterance(text);
+        utter.lang = state.language === "bn" ? "bn-BD" : "en-US";
+        window.speechSynthesis.speak(utter);
+    }
+    // Show text visually too:
+    let box = document.getElementById("voice-line");
+    box.innerText = text;
+    box.classList.add("active");
+    setTimeout(() => box.classList.remove("active"), 1400);
+}
+
+// =========== "3D" Canvas Rendering ============
+const canvas = document.getElementById("game-canvas");
+const ctx = canvas.getContext("2d");
+
+function drawRoad() {
+    // Simulate perspective road (gray), with vanishing point
+    ctx.save();
+    ctx.fillStyle = "#444";
+    ctx.beginPath();
+    ctx.moveTo(90, 0);
+    ctx.lineTo(310, 0);
+    ctx.lineTo(390, 600);
+    ctx.lineTo(10, 600);
+    ctx.closePath();
+    ctx.fill();
+    // Center stripes (faux 3D effect)
+    ctx.strokeStyle = "#fffb";
+    ctx.setLineDash([40, 25]);
+    ctx.lineWidth = 4;
+    ctx.beginPath();
+    ctx.moveTo(200, 0);
+    ctx.lineTo(200, 600);
+    ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.restore();
+}
+function getLaneX(lane, z) {
+    // 3 lanes, z is "depth" (0=far, 1=close)
+    // Lane 0: left, 1: center, 2: right
+    let base = [110, 200, 290];
+    let perspective = (x) => 200 + (x - 200) * (0.55 + 0.45 * z);
+    return perspective(base[lane]);
+}
+function getLaneY(z) {
+    // Z: 0 (far) to 1 (close)
+    return 70 + 500 * z;
+}
+function scaleByZ(z, size) {
+    // Simulate size shrinking by depth
+    return size * (0.60 + 0.45 * z);
+}
+
+// =========== Game State ============
 const LANE_COUNT = 3;
-const PLAYER_SIZE = 44;
-const OBSTACLE_SIZE = 44;
-const CHANDA_SIZE = 32;
-const GAME_SPEED_BASE = 3.2;
-const OBSTACLE_INTERVAL = 1100;
-const CHANDA_INTERVAL = 850;
-const RED_JULY_MODE_SCORE = 80;
-const ELECTION_MODE_SCORE = 200;
+const OBSTACLE_SIZE = 60, CHANDA_SIZE = 48, PLAYER_SIZE = 64;
+const Z_START = 0.1, Z_END = 1.1;
+const SPAWN_Z = Z_START;
+const GAME_SPEED = 0.008; // z per frame
+const RED_JULY_SCORE = 70, ELECTION_SCORE = 150;
 
 const MEMES_BN = [
-    "নেতা: মামলার জ্বালা!", "এত FIR কে করল?", "ভাই, পুলিশ আসতেছে!", 
+    "নেতা: মামলার জ্বালা!", "এত FIR কে করল?", "ভাই, পুলিশ আসতেছে!",
     "চাঁদা কম হয় নাই তো?", "অনেক মামলা, অনেক সম্মান", "নেতার জন্য চাঁদা!",
     "আবারও কোর্ট!", "মিডিয়া ভাই, লাইভ দেন!", "কেস ফাইল জমা হল!",
     "ভাই, আরেকটা মামলা আসতেছে!", "আজ রেড জুলাই!", "ভাই, চাঁদার হিসাব রাখো!",
     "জয় বাংলা, চাঁদা বাংলা!"
 ];
-const MEMES_EN = [
-    "Leader: So many cases!", "Who filed all these FIRs?", "Run! Police incoming!", 
-    "Donation's never enough!", "Many cases, much respect.", "Chanda for the leader!",
-    "Court again!", "Media, go live!", "Case files piling up!",
-    "Another FIR incoming!", "It's Red July!", "Count the donations!", 
-    "Joy Bangla, Chanda Bangla!"
-];
 
-const VOICE_LINES_BN = [
-    "ভাই, আরেকটা মামলা আসতেছে!",
-    "চাঁদা কম হয় নাই তো?",
-    "মিডিয়া ভাই, ছবি তুলুন!",
-    "নেতা, FIR সাবধানে!",
-    "পুলিশ আসতেছে, দৌড়াও!",
-    "নতুন মামলা লিস্টে যোগ হলো!",
-    "ভাই, চাঁদার হিসাব মিলাইছে?",
-    "নেতা, কোর্ট ডাকে!",
-];
-const VOICE_LINES_EN = [
-    "Another case incoming, bro!",
-    "Is the donation enough?",
-    "Media bro, take a pic!",
-    "Leader, careful with FIR!",
-    "Police incoming, run!",
-    "New case added to list!",
-    "Bro, checked the donation count?",
-    "Leader, court is calling!",
-];
-
-const SHOP_ITEMS = [
-    { name_bn: "লাঠি (বোনাস: পুলিশ ধীর)", name_en: "Stick (slows police)", price: 30, id: "stick" },
-    { name_bn: "রেজিনেটা (অতিরিক্ত চাঁদা)", name_en: "Resineta (extra chanda)", price: 50, id: "resineta" },
-    { name_bn: "নিউজ কভারেজ (মেমে ডাবল)", name_en: "News Coverage (double memes)", price: 40, id: "news" },
-];
-
-const FAKE_NAMES = [
-    "আলমগীর ভাই", "বাবলু স্যার", "রিজভী ভাই", "নূরুল হক", "শাহিনুল", "শরীফুল মিয়া", "রুবেল মোল্লা", "ডাক্তার মিজান", "ইসমাইল ভাই", "ফারুক ফার্মাসিস্ট", "বদরুল ভাই"
-];
-
-// ==== State ====
 let state = {
-    running: false,
-    over: false,
-    election: false,
-    redJuly: false,
-    sound: true,
-    language: "bn",
-    controls: "swipe", // or keys
-    chanda: 0,
-    score: 0,
-    chandaCollected: 0,
-    obstacles: [],
-    chandas: [],
-    player: {
-        lane: 1,
-        y: GAME_HEIGHT - 110,
-        jumping: false,
-        jumpY: 0,
-        jumpV: 0,
-    },
-    speed: GAME_SPEED_BASE,
-    lastObstacle: 0,
-    lastChanda: 0,
-    shop: {},
-    leaderboard: [],
-    memes: [],
-    voices: [],
+    running: false, over: false, election: false, redJuly: false,
+    sound: true, language: "bn", controls: "swipe",
+    chanda: 0, score: 0, chandaCollected: 0,
+    player: { lane: 1, jump: 0, jumping: false, jumpV: 0 },
+    obstacles: [], chandas: [],
+    powerups: [],
+    lastObstacle: 0, lastChanda: 0,
+    speed: GAME_SPEED,
+    shop: {}, memeBuff: false, resinetaBuff: false, stickBuff: false,
+    timeStarted: 0, timeEnded: 0,
     fakeName: "",
-    memeBuff: false,
-    resinetaBuff: false,
-    stickBuff: false,
-    timeStarted: 0,
-    timeEnded: 0,
 };
 
-// ===== Helpers =====
-function getLaneX(lane) {
-    return 40 + lane * 110;
-}
-function rndi(a, b) {
-    return Math.floor(Math.random() * (b - a + 1)) + a;
-}
-function choice(arr) {
-    return arr[rndi(0, arr.length - 1)];
-}
-function now() {
-    return performance.now();
-}
 function toBengaliDigits(n) {
     return n.toString().split('').map(d => '০১২৩৪৫৬৭৮৯'[+d] || d).join('');
 }
 
-// ====== UI Elements ======
-const canvas = document.getElementById("game-canvas");
-const ctx = canvas.getContext("2d");
-const scoreValue = document.getElementById("score-value");
-const memePopup = document.getElementById("meme-popup");
-const voiceLineBox = document.getElementById("voice-line");
-const redJulyBanner = document.getElementById("red-july-banner");
-
-const leaderboardModal = document.getElementById("leaderboard-modal");
-const leaderboardBtn = document.getElementById("leaderboard-btn");
-const leaderboardBtnBottom = document.getElementById("leaderboard-btn-bottom");
-const leaderboardList = document.getElementById("leaderboard-list");
-const leaderboardClose = document.getElementById("leaderboard-close");
-
-const shopModal = document.getElementById("shop-modal");
-const shopBtn = document.getElementById("shop-btn");
-const shopBtnBottom = document.getElementById("shop-btn-bottom");
-const shopList = document.getElementById("shop-list");
-const shopClose = document.getElementById("shop-close");
-
-const chandaCalcBtn = document.getElementById("chanda-calc-btn");
-const chandaCalcModal = document.getElementById("chanda-calc-modal");
-const chandaCalcClose = document.getElementById("chanda-calc-close");
-const chandaCalcForm = document.getElementById("chanda-calc-form");
-const chandaCalcResult = document.getElementById("chanda-calc-result");
-
-const settingsBtn = document.getElementById("settings-btn");
-const settingsModal = document.getElementById("settings-modal");
-const settingsClose = document.getElementById("settings-close");
-const soundToggle = document.getElementById("sound-toggle");
-const languageToggle = document.getElementById("language-toggle");
-const controlsToggle = document.getElementById("controls-toggle");
-
-const gameOverModal = document.getElementById("game-over-modal");
-const finalScore = document.getElementById("final-score");
-const restartBtn = document.getElementById("restart-btn");
-const gameOverMeme = document.getElementById("game-over-meme");
-const shareFb = document.getElementById("share-fb");
-const shareTg = document.getElementById("share-tg");
-
-const electionModeModal = document.getElementById("election-mode-modal");
-const electionModeFlags = document.getElementById("election-mode-flags");
-const electionRestartBtn = document.getElementById("election-restart-btn");
-
-// ====== Game Asset Placeholders ======
-// Player: dark blue rectangle with red scarf
-// Obstacle: police (blue), FIR bomb (red), file (brown), protestor (orange)
-// Chanda: green bundle
-
-function drawPlayer() {
-    // Body
-    ctx.fillStyle = "#1d2f81";
-    ctx.fillRect(getLaneX(state.player.lane), state.player.y + state.player.jumpY, PLAYER_SIZE, PLAYER_SIZE);
-    // Head
-    ctx.fillStyle = "#ffe8c9";
-    ctx.beginPath();
-    ctx.arc(getLaneX(state.player.lane) + 22, state.player.y + state.player.jumpY + 13, 14, 0, 2 * Math.PI);
-    ctx.fill();
-    // Scarf
-    ctx.fillStyle = "#e62d23";
-    ctx.fillRect(getLaneX(state.player.lane) + 7, state.player.y + state.player.jumpY + 34, 30, 7);
+// =========== Entities ============
+function spawnObstacle() {
+    // Varied types, more during Red July
+    let types = ["police", "file", "fir", "protestor"];
+    if (state.redJuly) types.push("fire");
+    let type = types[Math.floor(Math.random() * types.length)];
+    let lane = Math.floor(Math.random() * LANE_COUNT);
+    state.obstacles.push({
+        type, lane, z: SPAWN_Z,
+        hit: false,
+    });
 }
-function drawObstacle(obs) {
-    if (obs.type === "police") {
-        ctx.fillStyle = "#3067b6";
-        ctx.fillRect(obs.x, obs.y, OBSTACLE_SIZE, OBSTACLE_SIZE);
-        ctx.fillStyle = "#fff";
-        ctx.fillText("👮", obs.x + 8, obs.y + 30);
-    } else if (obs.type === "file") {
-        ctx.fillStyle = "#b44c1c";
-        ctx.fillRect(obs.x, obs.y, OBSTACLE_SIZE, OBSTACLE_SIZE - 14);
-        ctx.fillStyle = "#fff";
-        ctx.fillText("📄", obs.x + 8, obs.y + 25);
-    } else if (obs.type === "fir") {
-        ctx.fillStyle = "#e62d23";
-        ctx.beginPath();
-        ctx.arc(obs.x + 22, obs.y + 22, 22, 0, 2 * Math.PI);
-        ctx.fill();
-        ctx.fillStyle = "#fff";
-        ctx.fillText("FIR", obs.x + 7, obs.y + 28);
-    } else if (obs.type === "protestor") {
-        ctx.fillStyle = "#f78224";
-        ctx.fillRect(obs.x, obs.y + 14, OBSTACLE_SIZE, OBSTACLE_SIZE - 14);
-        ctx.fillStyle = "#000";
-        ctx.fillText("😡", obs.x + 8, obs.y + 39);
-    } else if (obs.type === "fire") {
-        ctx.fillStyle = "#ff2b1c";
-        ctx.beginPath();
-        ctx.arc(obs.x + 22, obs.y + 22, 24, 0, 2 * Math.PI);
-        ctx.fill();
-        ctx.fillStyle = "#fff700";
-        ctx.fillText("🔥", obs.x + 8, obs.y + 28);
+function spawnChanda() {
+    let lane = Math.floor(Math.random() * LANE_COUNT);
+    state.chandas.push({ lane, z: SPAWN_Z, collected: false });
+}
+function spawnPowerup() {
+    // 1 in 12 chance
+    if (Math.random() < 0.08) {
+        let kinds = ["double", "invincible", "slow"];
+        let kind = kinds[Math.floor(Math.random() * kinds.length)];
+        let lane = Math.floor(Math.random() * LANE_COUNT);
+        state.powerups.push({ kind, lane, z: SPAWN_Z, active: false });
     }
 }
-function drawChanda(c) {
-    ctx.fillStyle = "#1a9d36";
-    ctx.fillRect(c.x + 7, c.y + 12, CHANDA_SIZE - 14, CHANDA_SIZE - 14);
-    ctx.fillStyle = "#fff";
-    ctx.fillText("৳", c.x + 14, c.y + 32);
-}
 
-// ====== Game Loop ======
+// =========== Main Loop ============
 function resetGame() {
-    state.running = true;
-    state.over = false;
-    state.election = false;
-    state.redJuly = false;
-    state.chanda = 0;
-    state.score = 0;
-    state.chandaCollected = 0;
-    state.obstacles = [];
-    state.chandas = [];
-    state.player = { lane: 1, y: GAME_HEIGHT - 110, jumping: false, jumpY: 0, jumpV: 0 };
-    state.speed = GAME_SPEED_BASE;
-    state.lastObstacle = 0;
-    state.lastChanda = 0;
-    state.memeBuff = false;
-    state.resinetaBuff = false;
-    state.stickBuff = false;
+    state.running = true; state.over = false; state.election = false; state.redJuly = false;
+    state.chanda = 0; state.score = 0; state.chandaCollected = 0;
+    state.player = { lane: 1, jump: 0, jumping: false, jumpV: 0 };
+    state.obstacles = []; state.chandas = []; state.powerups = [];
+    state.lastObstacle = 0; state.lastChanda = 0;
+    state.speed = GAME_SPEED;
+    state.shop = {}; state.memeBuff = false; state.resinetaBuff = false; state.stickBuff = false;
     state.timeStarted = Date.now();
     closeAllModals();
-    updateScorePanel();
+    playAudio("bg");
     requestAnimationFrame(loop);
 }
 function loop(ts) {
     if (!state.running) return;
-    ctx.clearRect(0, 0, GAME_WIDTH, GAME_HEIGHT);
+    ctx.clearRect(0, 0, 400, 600);
 
-    // Background
-    if (state.redJuly) {
-        ctx.fillStyle = "#ff2b1c44";
-        ctx.fillRect(0, 0, GAME_WIDTH, GAME_HEIGHT);
+    drawRoad();
+
+    // Draw entities, sorted by z (far to near)
+    let entities = [];
+    for (let o of state.obstacles) entities.push({ ...o, ent: "obstacle" });
+    for (let c of state.chandas) entities.push({ ...c, ent: "chanda" });
+    for (let p of state.powerups) entities.push({ ...p, ent: "powerup" });
+    entities = entities.filter(e => e.z > Z_START && e.z < Z_END)
+        .sort((a, b) => a.z - b.z);
+
+    // Draw all background entities
+    for (let e of entities) {
+        let x = getLaneX(e.lane, e.z);
+        let y = getLaneY(e.z);
+        let sz = scaleByZ(e.z, e.ent === "chanda" ? CHANDA_SIZE : OBSTACLE_SIZE);
+        if (e.ent === "obstacle") drawObstacle3D(e.type, x, y, sz);
+        if (e.ent === "chanda") drawChanda3D(x, y, sz);
+        if (e.ent === "powerup") drawPowerup3D(e.kind, x, y, sz);
     }
 
-    // Lane lines
-    ctx.strokeStyle = "#c2c2c2";
-    for (let i = 1; i < LANE_COUNT; i++)
-        ctx.beginPath(), ctx.moveTo(getLaneX(i) - 12, 0), ctx.lineTo(getLaneX(i) - 12, GAME_HEIGHT), ctx.stroke();
+    // Draw player (always z=playerZ)
+    let playerZ = 0.95;
+    let px = getLaneX(state.player.lane, playerZ);
+    let py = getLaneY(playerZ) - state.player.jump;
+    drawPlayer3D(px, py, scaleByZ(playerZ, PLAYER_SIZE));
 
-    // Player
-    drawPlayer();
+    // Move entities forward (increase z)
+    let speed = state.speed * (state.redJuly ? 1.55 : 1);
+    for (let o of state.obstacles) o.z += speed;
+    for (let c of state.chandas) c.z += speed;
+    for (let p of state.powerups) p.z += speed;
 
-    // Obstacles
-    for (let obs of state.obstacles)
-        drawObstacle(obs);
+    // Remove past
+    state.obstacles = state.obstacles.filter(o => o.z < Z_END && !o.hit);
+    state.chandas = state.chandas.filter(c => c.z < Z_END && !c.collected);
+    state.powerups = state.powerups.filter(p => p.z < Z_END && !p.active);
 
-    // Chanda
-    for (let c of state.chandas)
-        drawChanda(c);
+    // Spawning
+    if (Math.random() < (state.redJuly ? 0.07 : 0.045)) spawnObstacle();
+    if (Math.random() < 0.07) spawnChanda();
+    if (Math.random() < 0.017) spawnPowerup();
 
-    // Move obstacles/chanda
-    let speed = state.speed * (state.redJuly ? 1.27 : 1);
-    for (let obs of state.obstacles)
-        obs.y += speed;
-    for (let c of state.chandas)
-        c.y += speed;
-
-    // Remove passed obstacles/chanda
-    state.obstacles = state.obstacles.filter(o => o.y < GAME_HEIGHT + 60);
-    state.chandas = state.chandas.filter(c => c.y < GAME_HEIGHT + 60);
-
-    // Obstacle collision
-    for (let obs of state.obstacles) {
-        if (Math.abs(obs.lane - state.player.lane) === 0 &&
-            obs.y + OBSTACLE_SIZE > state.player.y + state.player.jumpY + 8 &&
-            obs.y < state.player.y + state.player.jumpY + PLAYER_SIZE - 8) {
-            if (obs.type === "fire") {
-                triggerGameOver("fire");
+    // Collisions
+    let playerLane = state.player.lane;
+    for (let o of state.obstacles) {
+        if (Math.abs(o.lane - playerLane) === 0 &&
+            o.z > 0.87 && o.z < 0.98 &&
+            !o.hit && state.player.jump < 28
+        ) {
+            if (state.stickBuff && o.type === "police") {
+                o.hit = true; showMeme(); playVoiceLine("পুলিশ ধীর!");
+            } else if (state.powerInvincible) {
+                o.hit = true;
+            } else {
+                o.hit = true; playAudio("hit");
+                triggerGameOver(o.type);
                 return;
             }
-            if (obs.type === "police" && !state.stickBuff)
-                return triggerGameOver("police");
-            if (obs.type === "protestor")
-                return triggerGameOver("protestor");
-            if (obs.type === "fir")
-                return triggerGameOver("fir");
-            if (obs.type === "file")
-                return triggerGameOver("file");
-            // Buff: stick (police slows)
-            if (obs.type === "police" && state.stickBuff) {
-                showMeme();
-                playVoiceLine();
-                obs.y += 60; // skip
-            }
         }
     }
-    // Chanda collection
     for (let c of state.chandas) {
-        if (Math.abs(c.lane - state.player.lane) === 0 &&
-            c.y + CHANDA_SIZE > state.player.y + state.player.jumpY + 15 &&
-            c.y < state.player.y + state.player.jumpY + PLAYER_SIZE - 12) {
+        if (Math.abs(c.lane - playerLane) === 0 &&
+            c.z > 0.88 && c.z < 0.99 && !c.collected
+        ) {
             c.collected = true;
-            let amount = 1 + (state.resinetaBuff ? 1 : 0);
-            state.chanda += amount;
-            state.chandaCollected += amount;
+            playAudio("coin");
+            let amount = 1 + (state.resinetaBuff ? 1 : 0) + (state.powerDouble ? 1 : 0);
+            state.chanda += amount; state.chandaCollected += amount;
             showMeme();
-            playVoiceLine();
+            playVoiceLine("চাঁদা কম হয় নাই তো?");
         }
     }
-    state.chandas = state.chandas.filter(c => !c.collected);
+    for (let p of state.powerups) {
+        if (Math.abs(p.lane - playerLane) === 0 &&
+            p.z > 0.88 && p.z < 0.99 && !p.active
+        ) {
+            p.active = true;
+            applyPowerup(p.kind);
+        }
+    }
 
     // Score
     state.score += 1 + (state.resinetaBuff ? 1 : 0);
     updateScorePanel();
 
-    // Jump logic
+    // Player jump
     if (state.player.jumping) {
-        state.player.jumpY += state.player.jumpV;
-        state.player.jumpV += 1.2;
-        if (state.player.jumpY > 0) {
+        state.player.jump += state.player.jumpV;
+        state.player.jumpV += 1.4;
+        if (state.player.jump > 0) {
             state.player.jumping = false;
-            state.player.jumpY = 0;
+            state.player.jump = 0;
             state.player.jumpV = 0;
         }
     }
 
-    // Obstacle spawn
-    let t = now();
-    if (t - state.lastObstacle > (state.redJuly ? OBSTACLE_INTERVAL * 0.7 : OBSTACLE_INTERVAL)) {
-        spawnObstacle();
-        state.lastObstacle = t;
-    }
-    // Chanda spawn
-    if (t - state.lastChanda > CHANDA_INTERVAL) {
-        spawnChanda();
-        state.lastChanda = t;
-    }
-
     // Red July mode
-    if (!state.redJuly && state.chanda >= RED_JULY_MODE_SCORE) {
-        triggerRedJulyMode();
+    if (!state.redJuly && state.chanda >= RED_JULY_SCORE) {
+        state.redJuly = true;
+        document.getElementById("red-july-banner").style.display = 'block';
+        playAudio("redjuly");
+        setTimeout(() => {
+            document.getElementById("red-july-banner").style.display = 'none';
+        }, 2500);
     }
     // Election mode
-    if (!state.election && state.chanda >= ELECTION_MODE_SCORE) {
-        triggerElectionMode();
+    if (!state.election && state.chanda >= ELECTION_SCORE) {
+        state.election = true;
+        state.running = false;
+        setTimeout(() => {
+            showElectionModal();
+            stopAudio("bg");
+        }, 900);
         return;
     }
 
     requestAnimationFrame(loop);
 }
 
-// ====== Obstacle & Chanda Spawning ======
-function spawnObstacle() {
-    let rand = Math.random();
-    let type;
-    if (state.redJuly) {
-        if (rand < 0.16) type = "fire";
-        else if (rand < 0.39) type = "fir";
-        else if (rand < 0.62) type = "police";
-        else if (rand < 0.81) type = "file";
-        else type = "protestor";
-    } else {
-        if (rand < 0.28) type = "police";
-        else if (rand < 0.46) type = "file";
-        else if (rand < 0.56) type = "fir";
-        else type = "protestor";
-    }
-    let lane = rndi(0, LANE_COUNT - 1);
-    state.obstacles.push({
-        type,
-        x: getLaneX(lane),
-        y: -OBSTACLE_SIZE,
-        lane,
-    });
+// =========== "3D" Drawing ============
+function drawPlayer3D(x, y, sz) {
+    ctx.save();
+    ctx.translate(x, y);
+    // Shadow
+    ctx.globalAlpha = 0.18; ctx.beginPath();
+    ctx.ellipse(0, sz * 0.7, sz * 0.32, sz * 0.16, 0, 0, 2 * Math.PI);
+    ctx.fillStyle = "#000"; ctx.fill(); ctx.globalAlpha = 1;
+    // Body
+    ctx.fillStyle = "#1d2f81";
+    ctx.fillRect(-sz/2, -sz/2, sz, sz * 0.75);
+    // Head
+    ctx.beginPath(); ctx.arc(0, -sz*0.32, sz*0.26, 0, 2 * Math.PI);
+    ctx.fillStyle = "#ffe8c9"; ctx.fill();
+    // Scarf
+    ctx.fillStyle = "#e62d23"; ctx.fillRect(-sz/2 + 5, sz*0.12, sz-10, sz*0.13);
+    ctx.restore();
 }
-function spawnChanda() {
-    let lane = rndi(0, LANE_COUNT - 1);
-    state.chandas.push({
-        x: getLaneX(lane) + 4,
-        y: -CHANDA_SIZE,
-        lane,
-        collected: false,
-    });
+function drawObstacle3D(type, x, y, sz) {
+    ctx.save(); ctx.translate(x, y);
+    // Shadow
+    ctx.globalAlpha = 0.13;
+    ctx.beginPath(); ctx.ellipse(0, sz * 0.7, sz * 0.30, sz * 0.14, 0, 0, 2 * Math.PI);
+    ctx.fillStyle = "#000"; ctx.fill(); ctx.globalAlpha = 1;
+    // Draw by type
+    if (type === "police") {
+        ctx.fillStyle = "#3067b6"; ctx.fillRect(-sz/2, -sz/2, sz, sz);
+        ctx.font = (sz*0.7) + "px serif"; ctx.fillStyle = "#fff";
+        ctx.fillText("👮", -sz*0.33, sz*0.23);
+    } else if (type === "file") {
+        ctx.fillStyle = "#b44c1c"; ctx.fillRect(-sz/2, -sz/2, sz, sz*0.68);
+        ctx.font = (sz*0.5) + "px serif"; ctx.fillStyle = "#fff";
+        ctx.fillText("📄", -sz*0.25, sz*0.10);
+    } else if (type === "fir") {
+        ctx.fillStyle = "#e62d23";
+        ctx.beginPath(); ctx.arc(0, 0, sz/2, 0, 2 * Math.PI); ctx.fill();
+        ctx.font = (sz*0.32) + "px serif"; ctx.fillStyle = "#fff";
+        ctx.fillText("FIR", -sz*0.30, sz*0.13);
+    } else if (type === "protestor") {
+        ctx.fillStyle = "#f78224"; ctx.fillRect(-sz/2, sz*0.07, sz, sz*0.6);
+        ctx.font = (sz*0.7) + "px serif"; ctx.fillStyle = "#000";
+        ctx.fillText("😡", -sz*0.33, sz*0.45);
+    } else if (type === "fire") {
+        ctx.fillStyle = "#ff2b1c";
+        ctx.beginPath(); ctx.arc(0, 0, sz*0.56, 0, 2 * Math.PI); ctx.fill();
+        ctx.font = (sz*0.7) + "px serif"; ctx.fillStyle = "#fff700";
+        ctx.fillText("🔥", -sz*0.33, sz*0.23);
+    }
+    ctx.restore();
+}
+function drawChanda3D(x, y, sz) {
+    ctx.save(); ctx.translate(x, y);
+    // Shadow
+    ctx.globalAlpha = 0.14;
+    ctx.beginPath(); ctx.ellipse(0, sz * 0.5, sz * 0.26, sz * 0.10, 0, 0, 2 * Math.PI);
+    ctx.fillStyle = "#000"; ctx.fill(); ctx.globalAlpha = 1;
+    // Chanda bundle
+    ctx.fillStyle = "#1a9d36"; ctx.fillRect(-sz/2+4, -sz/2+8, sz-8, sz-20);
+    ctx.font = (sz*0.8) + "px serif"; ctx.fillStyle = "#fff";
+    ctx.fillText("৳", -sz*0.28, sz*0.23);
+    ctx.restore();
+}
+function drawPowerup3D(kind, x, y, sz) {
+    ctx.save(); ctx.translate(x, y);
+    ctx.globalAlpha = 0.18;
+    ctx.beginPath(); ctx.arc(0, 0, sz/2+8, 0, 2*Math.PI); ctx.fillStyle="#fff700"; ctx.fill(); ctx.globalAlpha=1;
+    if (kind === "double") {
+        ctx.font = (sz*0.7) + "px serif"; ctx.fillStyle = "#2a8";
+        ctx.fillText("×২", -sz*0.20, sz*0.25);
+    } else if (kind === "invincible") {
+        ctx.font = (sz*0.7) + "px serif"; ctx.fillStyle = "#f23";
+        ctx.fillText("🦺", -sz*0.33, sz*0.23);
+    } else if (kind === "slow") {
+        ctx.font = (sz*0.7) + "px serif"; ctx.fillStyle = "#29d";
+        ctx.fillText("🐢", -sz*0.33, sz*0.23);
+    }
+    ctx.restore();
 }
 
-// ====== Meme System ======
+// =========== Powerups ============
+function applyPowerup(kind) {
+    if (kind === "double") {
+        state.powerDouble = true;
+        showBanner("চাঁদা ×২!");
+        playAudio("powerup");
+        setTimeout(() => { state.powerDouble = false; }, 6500);
+    }
+    if (kind === "invincible") {
+        state.powerInvincible = true;
+        showBanner("নেতা অজেয়!");
+        playAudio("powerup");
+        setTimeout(() => { state.powerInvincible = false; }, 6500);
+    }
+    if (kind === "slow") {
+        let oldSpeed = state.speed;
+        state.speed = GAME_SPEED * 0.55;
+        showBanner("স্লো মোশন!");
+        playAudio("powerup");
+        setTimeout(() => { state.speed = oldSpeed; }, 6500);
+    }
+}
+function showBanner(text) {
+    let bn = document.getElementById("powerup-banner");
+    bn.innerText = text;
+    bn.style.display = "block";
+    setTimeout(() => { bn.style.display = "none"; }, 1200);
+}
+
+// =========== UI & Controls ============
 function showMeme() {
-    let memes = state.language === "bn" ? MEMES_BN : MEMES_EN;
-    let meme = choice(memes);
+    let memes = MEMES_BN;
+    let meme = memes[Math.floor(Math.random() * memes.length)];
     let memeElem = document.createElement("div");
     memeElem.className = "meme-text";
     memeElem.innerText = meme;
-    memeElem.style.left = rndi(10, 200) + "px";
-    memeElem.style.top = rndi(15, 80) + "px";
-    memePopup.appendChild(memeElem);
-    setTimeout(() => memeElem.remove(), 2000);
-    // Buff: news coverage (double memes)
-    if (state.memeBuff) {
-        let meme2 = choice(memes);
-        if (meme2 !== meme) {
-            let memeElem2 = document.createElement("div");
-            memeElem2.className = "meme-text";
-            memeElem2.innerText = meme2;
-            memeElem2.style.left = rndi(130, 330) + "px";
-            memeElem2.style.top = rndi(50, 120) + "px";
-            memePopup.appendChild(memeElem2);
-            setTimeout(() => memeElem2.remove(), 2000);
-        }
-    }
+    memeElem.style.left = Math.floor(Math.random()*180+10) + "px";
+    memeElem.style.top = Math.floor(Math.random()*40+25) + "px";
+    document.getElementById("meme-popup").appendChild(memeElem);
+    setTimeout(() => memeElem.remove(), 1800);
 }
-
-// ====== Voice Lines ======
-function playVoiceLine() {
-    if (!state.sound) return;
-    let voices = state.language === "bn" ? VOICE_LINES_BN : VOICE_LINES_EN;
-    let text = choice(voices);
-    voiceLineBox.innerText = text;
-    voiceLineBox.classList.add("active");
-    setTimeout(() => voiceLineBox.classList.remove("active"), 1350);
-    // Optionally: play sound file here if desired
-}
-
-// ====== Red July Mode ======
-function triggerRedJulyMode() {
-    state.redJuly = true;
-    redJulyBanner.style.display = 'block';
-    // Change background music if desired
-    setTimeout(() => {
-        redJulyBanner.style.display = 'none';
-    }, 2500);
-}
-
-// ====== Election Mode ======
-function triggerElectionMode() {
-    state.election = true;
-    state.running = false;
-    setTimeout(() => {
-        showElectionModal();
-    }, 900);
-}
-
-// ====== Game Over ======
-function triggerGameOver(type) {
-    state.running = false;
-    state.over = true;
-    state.timeEnded = Date.now();
-    let cause = {
-        "fire": state.language === "bn" ? "রেড জুলাই আগুনে পুড়লেন!" : "Burned in Red July fire!",
-        "police": state.language === "bn" ? "পুলিশ গ্রেফতার করল!" : "Arrested by police!",
-        "protestor": state.language === "bn" ? "বিক্ষোভকারীদের রোষে!" : "Angry protestors attack!",
-        "fir": state.language === "bn" ? "FIR বোমা ধরল!" : "Hit by FIR bomb!",
-        "file": state.language === "bn" ? "কেস ফাইল জমে গেল!" : "Drowned in case files!",
-    }[type];
-    let tagline = state.language === "bn" ?
-        "নেতা: "+ cause :
-        "Leader: "+ cause;
-    finalScore.innerHTML = (state.language === "bn" ? "আপনার সংগ্রহ: " : "Your Collection: ") +
-        (state.language === "bn" ? toBengaliDigits(state.chanda) : state.chanda) +
-        " " + (state.language === "bn" ? "চাঁদা" : "chanda");
-    gameOverMeme.innerText = tagline;
-    gameOverModal.style.display = "flex";
-    updateLeaderboard();
-}
-
-// ====== Score/Panel ======
 function updateScorePanel() {
-    scoreValue.innerText = state.language === "bn" ? toBengaliDigits(state.chanda) : state.chanda;
+    document.getElementById("score-value").innerText = toBengaliDigits(state.chanda);
 }
 
-// ====== Shop ======
-function openShop() {
-    shopModal.style.display = "flex";
-    shopList.innerHTML = "";
-    for (let item of SHOP_ITEMS) {
-        let li = document.createElement("li");
-        let name = state.language === "bn" ? item.name_bn : item.name_en;
-        let nameDiv = document.createElement("span");
-        nameDiv.className = "shop-item-name";
-        nameDiv.innerText = name;
-        let priceDiv = document.createElement("span");
-        priceDiv.className = "shop-item-price";
-        priceDiv.innerText = (state.language === "bn" ? toBengaliDigits(item.price) : item.price) + " চাঁদা";
-        let buyBtn = document.createElement("button");
-        buyBtn.className = "shop-buy-btn";
-        buyBtn.innerText = state.language === "bn" ? "কিনুন" : "Buy";
-        buyBtn.disabled = state.chanda < item.price || state.shop[item.id];
-        buyBtn.onclick = () => buyShopItem(item);
-        li.append(nameDiv, priceDiv, buyBtn);
-        shopList.appendChild(li);
-    }
-}
-function buyShopItem(item) {
-    if (state.chanda >= item.price && !state.shop[item.id]) {
-        state.chanda -= item.price;
-        state.shop[item.id] = true;
-        if (item.id === "stick") state.stickBuff = true;
-        if (item.id === "resineta") state.resinetaBuff = true;
-        if (item.id === "news") state.memeBuff = true;
-        openShop();
-        updateScorePanel();
-    }
-}
-
-// ====== Leaderboard ======
-function updateLeaderboard() {
-    // Fake names + player
-    let scores = [];
-    for (let i = 0; i < 7; i++) {
-        let fakeScore = rndi(40, 230);
-        scores.push({ name: FAKE_NAMES[i], score: fakeScore });
-    }
-    // Add user score
-    state.fakeName = choice(FAKE_NAMES);
-    scores.push({ name: state.fakeName + " (আপনি)", score: state.chanda });
-    scores = scores.sort((a, b) => b.score - a.score).slice(0, 8);
-    leaderboardList.innerHTML = "";
-    for (let i = 0; i < scores.length; i++) {
-        let li = document.createElement("li");
-        let rank = document.createElement("span");
-        rank.className = "rank";
-        rank.innerText = (state.language === "bn" ? toBengaliDigits(i + 1) : (i + 1)) + ".";
-        li.append(rank, scores[i].name + " — " + (state.language === "bn" ? toBengaliDigits(scores[i].score) : scores[i].score));
-        leaderboardList.appendChild(li);
-    }
-}
-
-// ====== Election Modal ======
-function showElectionModal() {
-    electionModeFlags.innerText = "🏴‍☠️ 🇧🇩 🟦 🏁";
-    electionModeModal.style.display = "flex";
-}
-
-// ====== Chanda Calculator ======
-chandaCalcForm.onsubmit = function(e) {
-    e.preventDefault();
-    let count = parseInt(document.getElementById("zone-count").value);
-    let amt = parseInt(document.getElementById("zone-amount").value);
-    let total = count * amt;
-    chandaCalcResult.innerText =
-        (state.language === "bn" ? "মোট চাঁদা: " : "Total Chanda: ") +
-        (state.language === "bn" ? toBengaliDigits(total) : total) + "৳";
-};
-chandaCalcBtn.onclick = () => chandaCalcModal.style.display = "flex";
-chandaCalcClose.onclick = () => chandaCalcModal.style.display = "none";
-
-// ====== Controls ======
-function moveLeft() {
-    if (!state.running) return;
-    if (state.player.lane > 0) state.player.lane--;
-}
-function moveRight() {
-    if (!state.running) return;
-    if (state.player.lane < LANE_COUNT - 1) state.player.lane++;
-}
+// Controls
+function moveLeft() { if (state.player.lane > 0) state.player.lane--; }
+function moveRight() { if (state.player.lane < LANE_COUNT-1) state.player.lane++; }
 function jump() {
-    if (!state.running) return;
     if (!state.player.jumping) {
-        state.player.jumping = true;
-        state.player.jumpV = -17;
+        state.player.jumping = true; state.player.jumpV = -20;
+        playAudio("jump");
     }
 }
-
-// Keyboard/Touch
 document.addEventListener("keydown", function(e) {
     if (!state.running) return;
-    if (state.controls === "keys") {
-        if (e.key === "ArrowLeft") moveLeft();
-        if (e.key === "ArrowRight") moveRight();
-        if (e.key === " " || e.key === "ArrowUp") jump();
-    }
+    if (e.key === "ArrowLeft") moveLeft();
+    if (e.key === "ArrowRight") moveRight();
+    if (e.key === " " || e.key === "ArrowUp") jump();
 });
 let touchStartX = 0, touchStartY = 0;
 canvas.addEventListener("touchstart", function(e) {
@@ -587,72 +419,44 @@ canvas.addEventListener("touchstart", function(e) {
 canvas.addEventListener("touchend", function(e) {
     if (!state.running) return;
     let t = e.changedTouches[0];
-    let dx = t.clientX - touchStartX;
-    let dy = t.clientY - touchStartY;
+    let dx = t.clientX - touchStartX, dy = t.clientY - touchStartY;
     if (Math.abs(dx) > Math.abs(dy)) {
         if (dx > 40) moveRight();
         else if (dx < -40) moveLeft();
-    } else {
-        if (dy < -30) jump();
-    }
+    } else { if (dy < -30) jump(); }
 });
 
-// ====== UI Buttons & Modals ======
-function closeAllModals() {
-    leaderboardModal.style.display = "none";
-    shopModal.style.display = "none";
-    chandaCalcModal.style.display = "none";
-    gameOverModal.style.display = "none";
-    electionModeModal.style.display = "none";
-    settingsModal.style.display = "none";
+// =========== Game Over & Cutscenes ============
+function triggerGameOver(type) {
+    state.running = false; state.over = true; state.timeEnded = Date.now();
+    playAudio("hit");
+    stopAudio("bg");
+    // (Show your own video cutscene if desired)
+    setTimeout(() => {
+        // Show your game over modal here
+        alert("ব্রেকিং নিউজ: নেতা গ্রেফতার!\nআপনার সংগ্রহ: " + toBengaliDigits(state.chanda));
+        // For production, use a modal (see previous versions)
+    }, 900);
 }
-leaderboardBtn.onclick = leaderboardBtnBottom.onclick = function() {
-    updateLeaderboard();
-    leaderboardModal.style.display = "flex";
-};
-leaderboardClose.onclick = () => leaderboardModal.style.display = "none";
-shopBtn.onclick = shopBtnBottom.onclick = openShop;
-shopClose.onclick = () => shopModal.style.display = "none";
-settingsBtn.onclick = () => settingsModal.style.display = "flex";
-settingsClose.onclick = () => settingsModal.style.display = "none";
+function stopAudio(aud) {
+    if (audio[aud]) { audio[aud].pause(); audio[aud].currentTime = 0; }
+}
+function showElectionModal() {
+    // (Show your election win cutscene or modal here)
+    alert("বিজয়! তারেক ভাই প্রধানমন্ত্রী!\nআপনি যথেষ্ট চাঁদা তুলেছেন!");
+    // For production, use a modal (see previous versions)
+}
 
-// ==== Settings ====
-soundToggle.onchange = function() {
-    state.sound = soundToggle.checked;
-};
-languageToggle.onchange = function() {
-    state.language = languageToggle.value;
-    updateScorePanel();
-};
-controlsToggle.onchange = function() {
-    state.controls = controlsToggle.value;
-};
+// =========== Modal UI (stub) ============
+function closeAllModals() {
+    // Implement modal closing (see previous versions)
+}
 
-// ====== Game Over / Restart ======
-restartBtn.onclick = electionRestartBtn.onclick = function() {
-    resetGame();
-};
-shareFb.onclick = function() {
-    let msg = (state.language === "bn" ? "চাঁদা রান: আমার সংগ্রহ " : "Chanda Run: My score ") +
-        (state.language === "bn" ? toBengaliDigits(state.chanda) : state.chanda) + " চাঁদা!";
-    let url = encodeURIComponent(location.href);
-    window.open(`https://facebook.com/sharer/sharer.php?u=${url}&quote=${encodeURIComponent(msg)}`);
-};
-shareTg.onclick = function() {
-    let msg = (state.language === "bn" ? "চাঁদা রান: আমার সংগ্রহ " : "Chanda Run: My score ") +
-        (state.language === "bn" ? toBengaliDigits(state.chanda) : state.chanda) + " চাঁদা!\n" +
-        location.href;
-    window.open(`https://t.me/share/url?url=${encodeURIComponent(location.href)}&text=${encodeURIComponent(msg)}`);
-};
-
-// ====== Initial ======
+// =========== Init ============
 resetGame();
-
 window.onresize = function() {
-    // Responsive canvas
+    // Responsive canvas (optional)
     let w = Math.min(window.innerWidth, 400);
-    canvas.width = w;
-    canvas.height = Math.max(400, Math.min(window.innerHeight - 200, 600));
+    canvas.width = w; canvas.height = Math.max(400, Math.min(window.innerHeight - 200, 600));
 };
-
 window.onresize();
