@@ -13,20 +13,19 @@
             <button id="settings-btn" aria-label="Settings">⚙️</button>
         </header>
 
+        <!-- Audio/Video (swap your own files in assets/) -->
         <div id="media-assets" style="display:none;">
-            <!-- Audio Placeholders (swap your own .mp3 files) -->
             <audio id="bg-music" src="assets/bgmusic.mp3" loop></audio>
             <audio id="sfx-chanda" src="assets/coin.mp3"></audio>
             <audio id="sfx-jump" src="assets/jump.mp3"></audio>
             <audio id="sfx-hit" src="assets/hit.mp3"></audio>
             <audio id="sfx-powerup" src="assets/powerup.mp3"></audio>
             <audio id="sfx-redjuly" src="assets/redjuly.mp3"></audio>
-            <!-- Voice lines will be played using JS speechSynthesis or custom audio -->
         </div>
 
-        <!-- Video cutscene overlays (swap your own .mp4 files) -->
         <video id="cutscene-video" width="400" height="600" style="display:none;" preload="auto"></video>
 
+        <!-- Main Game Display -->
         <div id="game-canvas-container">
             <canvas id="game-canvas" width="400" height="600"></canvas>
             <div id="score-panel">
@@ -41,10 +40,93 @@
         <div id="voice-line"></div>
         <div id="powerup-banner"></div>
         <div id="red-july-banner">🔥 রেড জুলাই মোড! 🔥</div>
+        <div id="modal-overlay" style="display:none;"></div>
 
-        <!-- Modals and Menus (as before, omitted for brevity, see previous version) -->
-        <!-- ... Leaderboard, Shop, Calculator, Settings, Game Over, Election Modal ... -->
-        <!-- (Same as before, just copy from previous index.html) -->
+        <!-- Modals -->
+        <div id="leaderboard-modal" class="modal">
+            <div class="modal-content">
+                <span class="close-btn" id="leaderboard-close">&times;</span>
+                <h2>শীর্ষ চাঁদা সংগ্রাহক</h2>
+                <ul id="leaderboard-list"></ul>
+            </div>
+        </div>
+
+        <div id="shop-modal" class="modal">
+            <div class="modal-content">
+                <span class="close-btn" id="shop-close">&times;</span>
+                <h2>দোকান</h2>
+                <ul id="shop-list"></ul>
+            </div>
+        </div>
+
+        <div id="settings-modal" class="modal">
+            <div class="modal-content">
+                <span class="close-btn" id="settings-close">&times;</span>
+                <h2>সেটিংস</h2>
+                <label>
+                    <input type="checkbox" id="sound-toggle" checked>
+                    শব্দ চালু/বন্ধ
+                </label>
+                <label>
+                    <select id="language-toggle">
+                        <option value="bn">বাংলা</option>
+                        <option value="en">English</option>
+                    </select>
+                    ভাষা
+                </label>
+                <label>
+                    <select id="controls-toggle">
+                        <option value="swipe">সুইপ (মোবাইল)</option>
+                        <option value="keys">কি-বোর্ড</option>
+                    </select>
+                    কন্ট্রোল
+                </label>
+            </div>
+        </div>
+
+        <div id="chanda-calc-modal" class="modal">
+            <div class="modal-content">
+                <span class="close-btn" id="chanda-calc-close">&times;</span>
+                <h2>চাঁদা ক্যালকুলেটর</h2>
+                <form id="chanda-calc-form">
+                    <label>
+                        অঞ্চল সংখ্যা:
+                        <input type="number" id="zone-count" min="1" required>
+                    </label>
+                    <label>
+                        প্রতি অঞ্চলে চাঁদা (৳):
+                        <input type="number" id="zone-amount" min="1" required>
+                    </label>
+                    <button type="submit">হিসাব করুন</button>
+                </form>
+                <div id="chanda-calc-result"></div>
+            </div>
+        </div>
+
+        <div id="game-over-modal" class="modal">
+            <div class="modal-content">
+                <video id="gameover-video" width="320" height="180" style="display:none;" controls></video>
+                <h2>ব্রেকিং নিউজ: নেতা গ্রেফতার!</h2>
+                <p id="final-score"></p>
+                <div id="game-over-meme"></div>
+                <div id="share-buttons">
+                    <button id="share-fb">Facebook-এ শেয়ার করুন</button>
+                    <button id="share-tg">Telegram-এ শেয়ার করুন</button>
+                </div>
+                <button id="restart-btn">আবার শুরু করুন</button>
+            </div>
+        </div>
+
+        <div id="election-mode-modal" class="modal">
+            <div class="modal-content">
+                <video id="election-video" width="320" height="180" style="display:none;" controls></video>
+                <img src="https://i.imgur.com/1NQjV1z.png" alt="আখতার ভাই" style="width:80px;">
+                <h2>বিজয়! আখতার ভাই প্রধানমন্ত্রী!</h2>
+                <p>আপনি যথেষ্ট চাঁদা তুলেছেন!</p>
+                <div id="election-mode-flags"></div>
+                <button id="election-restart-btn">নতুন রান শুরু করুন</button>
+            </div>
+        </div>
 
         <nav id="bottom-nav">
             <button id="chanda-calc-btn">চাঁদা ক্যালকুলেটর</button>
