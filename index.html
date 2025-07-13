@@ -3,25 +3,24 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Chanda Run: ক্ষমতার পেছনে দৌড়</title>
+  <title>Chanda Run: Pro Edition</title>
   <link rel="stylesheet" href="style.css">
   <link rel="icon" href="assets/logo.png">
-  <meta property="og:title" content="Chanda Run: ক্ষমতার পেছনে দৌড়">
-  <meta property="og:description" content="Temple Run × রাজনীতি × Meme! খেলুন, ভাইরাল করুন!">
+  <meta property="og:title" content="Chanda Run: Pro Edition">
+  <meta property="og:description" content="Temple Run × রাজনীতি × Meme × Advanced!">
   <meta property="og:image" content="assets/og-image.png">
 </head>
 <body>
-  <!-- Start/Logo Screen -->
+  <!-- Start / Logo Screen -->
   <div id="start-screen" class="screen active">
     <img src="assets/logo.png" alt="Chanda Run Logo" class="logo">
-    <h1>Chanda Run</h1>
-    <p>ক্ষমতার পেছনে দৌড়</p>
+    <h1>Chanda Run: Pro Edition</h1>
     <button id="btn-start" class="btn-main">শুরু করুন</button>
     <div class="lang-switch">
       <button data-lang="bn" class="active">বাংলা</button>
       <button data-lang="en">EN</button>
     </div>
-    <div class="credit">v1.0 | © Team MemeDev</div>
+    <div class="credit">v2.0 | © Team MemeDev</div>
   </div>
 
   <!-- Home/Menu Screen -->
@@ -35,7 +34,12 @@
       <button id="btn-leaderboard" class="btn-menu">Leaderboard</button>
       <button id="btn-shop" class="btn-menu">Shop</button>
       <button id="btn-chanda-calc" class="btn-menu">Chanda Calculator</button>
+      <button id="btn-assistant" class="btn-menu">Assistant</button>
       <button id="btn-settings" class="btn-menu">Settings</button>
+    </div>
+    <div class="char-select-box">
+      <h2>ক্যারেক্টর নির্বাচন করুন</h2>
+      <div id="char-list" class="char-list"></div>
     </div>
     <div class="quick-tips" id="quick-tips"></div>
     <div class="meme-popup" id="menu-meme"></div>
@@ -49,39 +53,52 @@
       <div class="case-count">মামলা: <span id="case-count">0</span></div>
       <button id="btn-pause" class="icon-btn">⏸️</button>
     </div>
+    <div class="game-characters">
+      <img id="player-char-img" class="char-sprite big" src="" alt="">
+      <img id="police-img" class="char-sprite" src="assets/police.png" alt="Police">
+      <img id="shopkeeper-img" class="char-sprite" src="assets/shopkeeper.png" alt="Shopkeeper">
+      <img id="assistant-img" class="char-sprite" src="assets/assistant.png" alt="Assistant">
+    </div>
     <div class="gesture-hints" id="gesture-hints"></div>
     <div class="meme-popup" id="game-meme"></div>
+    <audio id="bg-music" src="assets/sound/bg-music.mp3" loop></audio>
+    <audio id="sfx-collect" src="assets/sound/collect.mp3"></audio>
+    <audio id="sfx-case" src="assets/sound/case.mp3"></audio>
+    <audio id="voice-assist" src="assets/sound/assist-voice1.mp3"></audio>
   </div>
 
-  <!-- Red July Mode Popup -->
-  <div id="red-july-modal" class="modal">
-    <div class="modal-content red">
-      <h2>🔥 Red July Mode! 🔥</h2>
-      <p>নতুন মামলা দায়ের হলো! সাবধান... 🔔</p>
-      <button id="btn-red-july-ok" class="btn-main">RUN!</button>
-    </div>
-  </div>
-
-  <!-- Election Mode Modal -->
-  <div id="election-modal" class="modal">
+  <!-- Shop Modal with Shopkeeper -->
+  <div id="shop-modal" class="modal">
     <div class="modal-content">
-      <h2>নির্বাচন শুরু!</h2>
-      <p>কত চাঁদা জমা হয়েছে, দেখুন...</p>
-      <button id="btn-election-start" class="btn-main">দৌড়ান</button>
+      <div class="shopkeeper-row">
+        <img src="assets/shopkeeper.png" class="shopkeeper-avatar">
+        <span class="shopkeeper-dialogue" id="shopkeeper-dialogue">কি লাগবে ভাই?</span>
+      </div>
+      <h2>Shop</h2>
+      <div class="shop-items" id="shop-items"></div>
+      <button id="btn-shop-close" class="btn-main">Close</button>
     </div>
   </div>
 
-  <!-- Ending/Share Screen -->
-  <div id="ending-screen" class="screen">
-    <div class="ending-score">
-      <h2>আপনার স্কোর</h2>
-      <div id="final-score"></div>
-      <img id="ending-meme-img" src="" class="ending-meme">
+  <!-- Character Unlock Modal -->
+  <div id="char-unlock-modal" class="modal">
+    <div class="modal-content">
+      <h2>New Character Unlocked!</h2>
+      <img id="unlocked-char-img" class="char-sprite big" src="">
+      <div id="unlocked-char-name"></div>
+      <button id="btn-unlock-ok" class="btn-main">OK</button>
     </div>
-    <div class="share-row">
-      <button class="btn-share" id="btn-share-fb">Share Facebook</button>
-      <button class="btn-share" id="btn-share-tg">Share Telegram</button>
-      <button class="btn-main" id="btn-play-again">আবার খেলুন</button>
+  </div>
+
+  <!-- Assistant Modal (In-game tips & fun) -->
+  <div id="assistant-modal" class="modal">
+    <div class="modal-content">
+      <div class="assistant-row">
+        <img src="assets/assistant.png" class="assistant-avatar">
+        <span class="assistant-dialogue" id="assistant-dialogue">আমি এসিস্ট, আজকের টিপস!</span>
+      </div>
+      <ul id="assistant-tips"></ul>
+      <button id="btn-assistant-close" class="btn-main">Close</button>
     </div>
   </div>
 
@@ -106,15 +123,6 @@
     </div>
   </div>
 
-  <!-- Shop Modal -->
-  <div id="shop-modal" class="modal">
-    <div class="modal-content">
-      <h2>Shop</h2>
-      <div class="shop-items" id="shop-items"></div>
-      <button id="btn-shop-close" class="btn-main">Close</button>
-    </div>
-  </div>
-
   <!-- Settings Modal -->
   <div id="settings-modal" class="modal">
     <div class="modal-content">
@@ -125,8 +133,7 @@
       <label>
         <input type="checkbox" id="toggle-music" checked> Music
       </label>
-      <div>
-        Language: 
+      <div>Language: 
         <button data-lang="bn" class="active">বাংলা</button>
         <button data-lang="en">EN</button>
       </div>
@@ -142,10 +149,25 @@
       <ol>
         <li>Swipe করে দৌড়ান, চাঁদা কালেক্ট করুন</li>
         <li>মামলার ফাঁদ এড়িয়ে চলুন</li>
-        <li>Red July-তে সাবধান!</li>
+        <li>এসিস্টেন্ট-এর টিপস শুনুন</li>
+        <li>Shop থেকে আইটেম কিনুন, আনলক করুন</li>
         <li>চাঁদা জমিয়ে নির্বাচন জিতুন</li>
       </ol>
       <button id="btn-guide-close" class="btn-main">Close</button>
+    </div>
+  </div>
+
+  <!-- Ending/Share Screen -->
+  <div id="ending-screen" class="screen">
+    <div class="ending-score">
+      <h2>আপনার স্কোর</h2>
+      <div id="final-score"></div>
+      <img id="ending-meme-img" src="" class="ending-meme">
+    </div>
+    <div class="share-row">
+      <button class="btn-share" id="btn-share-fb">Share Facebook</button>
+      <button class="btn-share" id="btn-share-tg">Share Telegram</button>
+      <button class="btn-main" id="btn-play-again">আবার খেলুন</button>
     </div>
   </div>
 
