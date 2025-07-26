@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Aviator Casino Game</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body {
+      background: #14101a;
+      color: #fff;
+      font-family: 'Segoe UI', Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+    }
+    header {
+      background: #222147;
+      text-align: center;
+      padding: 24px 0 10px 0;
+      font-size: 2rem;
+      font-weight: bold;
+      letter-spacing: 2px;
+      border-top-left-radius: 24px;
+      border-top-right-radius: 24px;
+      margin-bottom: 0;
+    }
+    #main-game {
+      background: #19171d;
+      margin: 0 auto;
+      max-width: 800px;
+      border-radius: 20px;
+      box-shadow: 0 6px 32px #0007;
+      padding: 0 0 30px 0;
+      position: relative;
+      overflow: hidden;
+    }
+    #multiplier-track {
+      width: 100%;
+      height: 320px;
+      position: relative;
+      background: radial-gradient(ellipse at center, #2b232e 0%, #18151e 100%);
+      overflow: hidden;
+    }
+    #multiplier-curve {
+      position: absolute;
+      left: 0; bottom: 0;
+      width: 100%; height: 100%;
+      pointer-events: none;
+    }
+    .plane {
+      position: absolute;
+      width: 54px;
+      height: 34px;
+      transition: left 0.05s linear, bottom 0.05s linear;
+      z-index: 2;
+    }
+    .overlay-cards {
+      position: absolute;
+      z-index: 1;
+      width: 100%; height: 100%;
+      pointer-events: none;
+    }
+    .overlay-cards img {
+      width: 60px; height: 80px;
+      position: absolute;
+      opacity: 0.96;
+    }
+    .overlay-cards .dice {
+      width: 36px; height: 36px;
+    }
+    #current-multiplier {
+      position: absolute;
+      top: 45%; left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 3.5rem;
+      color: #fff;
+      text-shadow: 0 0 18px #e13552bb, 0 4px 12px #000d;
+      font-weight: 700;
+      z-index: 5;
+    }
+    #bets-bar {
+      background: #19182b;
+      text-align: center;
+      padding: 10px 0 6px 0;
+      border-top: 1px solid #2c2a39;
+      font-size: 1.13em;
+      letter-spacing: 0.5px;
+      color: #d3c5fd;
+    }
+    #controls {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 32px;
+      margin-top: 30px;
+    }
+    .bet-box {
+      background: #27243a;
+      padding: 16px 24px;
+      border-radius: 18px;
+      box-shadow: 0 2px 14px #0003;
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+    .bet-amount {
+      width: 60px;
+      font-size: 1.1em;
+      padding: 4px;
+      border-radius: 6px;
+      border: 1px solid #555;
+      background: #16131e;
+      color: #fff;
+      text-align: center;
+      margin-right: 10px;
+    }
+    .bet-btn {
+      background: #2cf46b;
+      color: #16161d;
+      font-weight: bold;
+      font-size: 1.2em;
+      padding: 8px 28px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background .15s;
+    }
+    .bet-btn[disabled] {
+      background: #aaa;
+      color: #333;
+      cursor: not-allowed;
+    }
+    .cashout-btn {
+      background: #e13552;
+      color: #fff;
+    }
+    #messages {
+      margin: 18px auto 0 auto;
+      max-width: 420px;
+      text-align: center;
+      font-size: 1.13em;
+      min-height: 28px;
+      color: #ffe591;
+    }
+    #your-bets-results {
+      max-width: 800px;
+      margin: 0 auto;
+      margin-top: 18px;
+      background: #1b1825;
+      border-radius: 14px;
+      box-shadow: 0 2px 10px #0002;
+      padding: 10px 18px;
+    }
+    .bet-result {
+      font-size: 1.06em;
+      margin-bottom: 3px;
+    }
+    @media (max-width: 600px) {
+      #main-game { max-width: 99vw; }
+      #multiplier-track { height: 200px; }
+      #controls { flex-direction: column; gap: 16px; }
+      .overlay-cards img { width: 36px; height: 50px; }
+    }
+  </style>
+</head>
+<body>
+  <header>AVIATOR CASINO GAME DEVELOPMENT</header>
+  <div id="main-game">
+    <div id="multiplier-track">
+      <canvas id="multiplier-curve"></canvas>
+      <div class="overlay-cards">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/5/57/Playing_card_spade_A.svg" style="top:40px; left:16%;" />
+        <img src="https://upload.wikimedia.org/wikipedia/commons/d/d5/Playing_card_diamond_9.svg" style="bottom:38px; left:10%;" />
+        <img src="https://upload.wikimedia.org/wikipedia/commons/5/57/Playing_card_heart_A.svg" style="top:28px; right:18%;" />
+        <img class="dice" src="https://upload.wikimedia.org/wikipedia/commons/2/2c/Alea_1.png" style="bottom:40px; left:22%;" />
+        <img class="dice" src="https://upload.wikimedia.org/wikipedia/commons/2/2c/Alea_1.png" style="top:80px; right:15%;" />
+      </div>
+      <img src="https://cdn.pixabay.com/photo/2013/07/13/12/14/airplane-145964_960_720.png" class="plane" id="plane" style="left:8px; bottom:10px;" />
+      <span id="current-multiplier">1.00x</span>
+    </div>
+    <div id="bets-bar">
+      <span>Previous multipliers:</span>
+      <span id="prev-mults"></span>
+    </div>
+    <div id="controls">
+      <div class="bet-box">
+        <label for="bet-amt">Bet</label>
+        <input type="number" min="1" max="1000" step="1" id="bet-amt" class="bet-amount" value="1" />
+        <button class="bet-btn" id="bet-btn">BET</button>
+      </div>
+      <div class="bet-box">
+        <label for="auto-cashout">Auto</label>
+        <input type="number" min="1.01" step="0.01" id="auto-cashout" class="bet-amount" value="2.00" />
+      </div>
+    </div>
+    <div id="messages"></div>
+    <div id="your-bets-results"></div>
+  </div>
+  <script>
+    // --- Game State ---
+    let currentState = 'waiting'; // 'waiting', 'in-progress', 'crashed'
+    let bets = [];
+    let playerBet = null;
+    let currentMultiplier = 1.00;
+    let crashMultiplier = 0;
+    let multiplierTimer = null;
+    let prevMultipliers = [];
+    let animationStartTime = null;
+    const ROUND_WAIT_TIME = 4000; // ms between rounds
+    const INTERVAL = 50; // ms per update
+    const MIN_BET = 1, MAX_BET = 1000;
+
+    // --- UI Elements ---
+    const betBtn = document.getElementById("bet-btn");
+    const betAmtInput = document.getElementById("bet-amt");
+    const autoCashoutInput = document.getElementById("auto-cashout");
+    const multElem = document.getElementById("current-multiplier");
+    const prevMultsElem = document.getElementById("prev-mults");
+    const messagesElem = document.getElementById("messages");
+    const resultsElem = document.getElementById("your-bets-results");
+    const planeElem = document.getElementById("plane");
+    const curveCanvas = document.getElementById("multiplier-curve");
+    let ctx = curveCanvas.getContext('2d');
+
+    // --- Game Logic Functions ---
+    function provablyFairCrash() {
+      // Simulate provably fair crash multiplier (simplified)
+      let rand = Math.random();
+      let crash = Math.floor(1 / (1 - rand));
+      if (crash < 1.01) crash = 1.01;
+      if (crash > 100) crash = 100;
+      return crash;
+    }
+
+    function startRound() {
+      currentState = 'in-progress';
+      currentMultiplier = 1.00;
+      crashMultiplier = provablyFairCrash();
+      playerBet = playerBet && !playerBet.hasCashedOut ? playerBet : null;
+      animationStartTime = Date.now();
+      updateUI();
+      animateMultiplier();
+      messagesElem.textContent = '';
+      betBtn.disabled = true;
+      betBtn.textContent = 'IN GAME';
+      betAmtInput.disabled = true;
+      autoCashoutInput.disabled = true;
+    }
+
+    function animateMultiplier() {
+      clearInterval(multiplierTimer);
+      multiplierTimer = setInterval(() => {
+        let seconds = (Date.now() - animationStartTime) / 1000;
+        currentMultiplier = +(1.002 ** (seconds * 1000) + 0.01 * seconds).toFixed(2);
+        if (currentMultiplier >= crashMultiplier) {
+          currentMultiplier = crashMultiplier;
+          crashRound();
+        }
+        updateUI();
+        checkAutoCashout();
+      }, INTERVAL);
+    }
+
+    function crashRound() {
+      clearInterval(multiplierTimer);
+      currentState = 'crashed';
+      prevMultipliers.unshift(crashMultiplier.toFixed(2));
+      if (prevMultipliers.length > 16) prevMultipliers = prevMultipliers.slice(0, 16);
+      if (playerBet && !playerBet.hasCashedOut) {
+        playerBet.cashoutMultiplier = null; // lost
+        playerBet.hasCashedOut = false;
+      }
+      updateUI();
+      betBtn.disabled = true;
+      betBtn.textContent = 'WAIT...';
+      messagesElem.textContent = `Crashed at ${crashMultiplier.toFixed(2)}x!`;
+      setTimeout(() => {
+        resetRound();
+      }, ROUND_WAIT_TIME);
+    }
+
+    function resetRound() {
+      currentState = 'waiting';
+      updateUI();
+      betBtn.disabled = false;
+      betBtn.textContent = 'BET';
+      betAmtInput.disabled = false;
+      autoCashoutInput.disabled = false;
+      messagesElem.textContent = 'New round! Place your bet.';
+      if (playerBet) playerBet = null;
+    }
+
+    function updateUI() {
+      // Set multiplier display.
+      multElem.textContent = currentMultiplier.toFixed(2) + 'x';
+      // Previous multipliers.
+      prevMultsElem.innerHTML = prevMultipliers.map(v =>
+        `<span style="margin-right:8px; color:${getColor(v)}">${v}x</span>`).join('');
+      // Update plane and curve.
+      drawCurve();
+      positionPlane();
+      // Results
+      renderResults();
+      // Bet button/cashout.
+      if (currentState === 'in-progress' && playerBet && !playerBet.hasCashedOut) {
+        betBtn.textContent = 'CASHOUT';
+        betBtn.classList.add('cashout-btn');
+        betBtn.disabled = false;
+      } else {
+        betBtn.classList.remove('cashout-btn');
+      }
+    }
+
+    function getColor(v) {
+      v = parseFloat(v);
+      if (v < 2) return '#d57e7e';
+      if (v < 4) return '#e1be35';
+      if (v < 10) return '#2cf46b';
+      return '#8bc9fd';
+    }
+
+    function drawCurve() {
+      // Responsive to canvas size
+      let w = curveCanvas.width = curveCanvas.offsetWidth;
+      let h = curveCanvas.height = curveCanvas.offsetHeight;
+      ctx.clearRect(0, 0, w, h);
+      // Draw curve (approximate)
+      ctx.save();
+      ctx.beginPath();
+      ctx.moveTo(0, h - 24);
+      let points = 120;
+      for (let i = 0; i <= points; ++i) {
+        let t = i / points;
+        let mult = Math.min(currentMultiplier, 1 + t * (crashMultiplier - 1));
+        let x = t * w;
+        let y = h - (h * (Math.log(mult) / Math.log(crashMultiplier))) * 0.82 - 24;
+        ctx.lineTo(x, y);
+      }
+      ctx.lineTo(w, h);
+      ctx.closePath();
+      ctx.fillStyle = "rgba(225,53,82,0.17)";
+      ctx.fill();
+      ctx.restore();
+      // Draw curve line
+      ctx.save();
+      ctx.beginPath();
+      ctx.moveTo(0, h - 24);
+      for (let i = 0; i <= points; ++i) {
+        let t = i / points;
+        let mult = Math.min(currentMultiplier, 1 + t * (crashMultiplier - 1));
+        let x = t * w;
+        let y = h - (h * (Math.log(mult) / Math.log(crashMultiplier))) * 0.82 - 24;
+        ctx.lineTo(x, y);
+      }
+      ctx.strokeStyle = "#e13552";
+      ctx.lineWidth = 3.5;
+      ctx.shadowColor = "#e13552";
+      ctx.shadowBlur = 8;
+      ctx.stroke();
+      ctx.restore();
+    }
+
+    function positionPlane() {
+      let w = curveCanvas.offsetWidth, h = curveCanvas.offsetHeight;
+      let t = Math.log(currentMultiplier) / Math.log(crashMultiplier);
+      if (!isFinite(t) || t < 0) t = 0;
+      t = Math.min(1, Math.max(0, t));
+      let left = 32 + t * (w - 88);
+      let bottom = 10 + (h * t * 0.82);
+      planeElem.style.left = left + "px";
+      planeElem.style.bottom = bottom + "px";
+    }
+
+    function renderResults() {
+      if (!playerBet) {
+        resultsElem.innerHTML = '';
+        return;
+      }
+      let html = '';
+      if (playerBet.hasCashedOut) {
+        let win = (playerBet.amount * playerBet.cashoutMultiplier).toFixed(2);
+        html = `<div class="bet-result" style="color:#2cf46b;">You cashed out at <b>${playerBet.cashoutMultiplier.toFixed(2)}x</b> and won <b>${win}</b>!</div>`;
+      } else if (currentState === 'crashed') {
+        html = `<div class="bet-result" style="color:#e13552;">You lost! Plane crashed at ${crashMultiplier.toFixed(2)}x.</div>`;
+      } else if (playerBet) {
+        html = `<div class="bet-result" style="color:#ffe591;">Your bet: <b>${playerBet.amount}</b> | <b>${playerBet.autoCashoutAt ? 'Auto: ' + playerBet.autoCashoutAt.toFixed(2) + 'x' : ''}</b></div>`;
+      }
+      resultsElem.innerHTML = html;
+    }
+
+    function checkAutoCashout() {
+      if (playerBet && playerBet.autoCashoutAt && !playerBet.hasCashedOut) {
+        if (currentMultiplier >= playerBet.autoCashoutAt) {
+          doCashout();
+        }
+      }
+    }
+
+    // --- Event Handlers ---
+    betBtn.addEventListener('click', () => {
+      if (currentState === 'waiting') {
+        let amount = parseFloat(betAmtInput.value);
+        if (isNaN(amount) || amount < MIN_BET || amount > MAX_BET) {
+          messagesElem.textContent = `Bet must be between ${MIN_BET} and ${MAX_BET}`;
+          return;
+        }
+        let auto = parseFloat(autoCashoutInput.value);
+        playerBet = {
+          amount: amount,
+          autoCashoutAt: isNaN(auto) || auto < 1.01 ? null : auto,
+          hasCashedOut: false,
+          cashoutMultiplier: null
+        };
+        messagesElem.textContent = `Bet placed: ${amount}. Waiting for round to start...`;
+        betBtn.disabled = true;
+        setTimeout(startRound, 1400 + Math.random()*800); // simulate random wait
+      } else if (currentState === 'in-progress' && playerBet && !playerBet.hasCashedOut) {
+        doCashout();
+      }
+    });
+
+    function doCashout() {
+      if (playerBet && !playerBet.hasCashedOut && currentState === 'in-progress') {
+        playerBet.hasCashedOut = true;
+        playerBet.cashoutMultiplier = currentMultiplier;
+        messagesElem.textContent = `Cashed out at ${currentMultiplier.toFixed(2)}x!`;
+        updateUI();
+        betBtn.disabled = true;
+        betBtn.textContent = 'CASHED OUT';
+      }
+    }
+
+    // --- Responsive ---
+    window.addEventListener('resize', drawCurve);
+
+    // --- Start ---
+    messagesElem.textContent = 'New round! Place your bet.';
+    drawCurve();
+    updateUI();
+  </script>
+</body>
+</html>
