@@ -1,0 +1,1261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no,maximum-scale=1" />
+<title>Exotix Trade Admin Panel</title>
+<link rel="icon" href="https://cryptologos.cc/logos/tether-usdt-logo.png" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+:root{
+--primary-gradient: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+--secondary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+--success-gradient: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+--warning-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+--danger-gradient: linear-gradient(135deg, #ff416c 0%, #ff4b2b 100%);
+--dark-bg: linear-gradient(135deg, #0c0c0c 0%, #1a1a1a 50%, #2d2d2d 100%);
+--card-bg: rgba(255,255,255,0.05);
+--card-border: rgba(255,255,255,0.1);
+--text-primary: #ffffff; 
+--text-secondary: #a0a0a0;
+--accent-blue: #3b82f6;
+--accent-green: #10b981;
+--accent-yellow: #f59e0b;
+--accent-red: #ef4444;
+--shadow-md: 0 4px 16px rgba(0,0,0,0.3); 
+--shadow-lg: 0 8px 32px rgba(0,0,0,0.4);
+}
+html,body{width:100%;height:100%;font-family:'Inter',system-ui,Segoe UI,sans-serif;background:var(--dark-bg);color:var(--text-primary);overflow-x:hidden}
+#app{display:block;min-height:100vh;padding-bottom:80px;background:var(--dark-bg);background-attachment:fixed}
+#main-content{width:100%;max-width:1200px;margin:0 auto;padding:0 16px}
+
+/* Header */
+.admin-header{background:var(--card-bg);backdrop-filter:blur(20px);border-radius:16px;padding:16px;border:1px solid var(--card-border);box-shadow:var(--shadow-md);margin-bottom:20px;text-align:center}
+.admin-title{font-size:28px;font-weight:800;background:var(--success-gradient);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.admin-subtitle{font-size:14px;color:var(--text-secondary);margin-top:8px}
+
+/* Stats Grid */
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin-bottom:20px}
+.stat-card{background:var(--card-bg);border:1px solid var(--card-border);border-radius:16px;padding:20px;text-align:center}
+.stat-icon{width:48px;height:48px;border-radius:12px;background:var(--primary-gradient);display:flex;align-items:center;justify-content:center;margin:0 auto 12px}
+.stat-icon img{width:24px;height:24px}
+.stat-label{font-size:12px;color:var(--text-secondary);font-weight:700;text-transform:uppercase;margin-bottom:8px}
+.stat-value{font-size:24px;font-weight:800;color:var(--accent-green)}
+
+/* Cards */
+.card{background:var(--card-bg);backdrop-filter:blur(20px);border-radius:16px;padding:20px;border:1px solid var(--card-border);box-shadow:var(--shadow-md);margin-bottom:20px}
+.card-title{font-size:18px;font-weight:800;margin-bottom:16px;color:var(--accent-blue)}
+
+/* Buttons */
+.btn-primary,.btn-success,.btn-danger,.btn-warning{padding:10px 16px;border:none;border-radius:8px;font-size:14px;font-weight:700;color:#fff;cursor:pointer;transition:.2s;margin:4px}
+.btn-primary{background:var(--primary-gradient)}
+.btn-success{background:var(--success-gradient)}
+.btn-danger{background:var(--danger-gradient)}
+.btn-warning{background:var(--warning-gradient)}
+
+/* Forms */
+.form-group{margin-bottom:16px}
+.form-label{font-size:12px;color:var(--text-secondary);font-weight:700;margin-bottom:6px;display:block}
+.form-input{width:100%;padding:10px;border-radius:8px;border:1px solid var(--card-border);background:rgba(255,255,255,.06);color:#fff;outline:none}
+.form-select{width:100%;padding:10px;border-radius:8px;border:1px solid var(--card-border);background:rgba(255,255,255,.06);color:#fff;outline:none}
+
+/* Tables */
+.table{width:100%;border-collapse:collapse;margin-top:16px}
+.table th,.table td{padding:12px;text-align:left;border-bottom:1px solid var(--card-border)}
+.table th{background:rgba(255,255,255,.05);font-weight:700;font-size:12px;text-transform:uppercase;color:var(--text-secondary)}
+.table td{font-size:14px}
+
+/* Status badges */
+.status-badge{padding:4px 8px;border-radius:6px;font-size:11px;font-weight:700;text-transform:uppercase}
+.status-pending{background:rgba(245,158,11,.2);color:#f59e0b}
+.status-approved{background:rgba(16,185,129,.2);color:#10b981}
+.status-rejected{background:rgba(239,68,68,.2);color:#ef4444}
+
+/* Search */
+.search-box{width:100%;padding:12px;border-radius:8px;border:1px solid var(--card-border);background:rgba(255,255,255,.06);color:#fff;outline:none;margin-bottom:16px}
+
+/* Grid Layout */
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+
+/* Notification */
+.notification{position:fixed;top:16px;right:16px;background:var(--success-gradient);color:#fff;padding:12px 20px;border-radius:12px;font-size:13px;font-weight:800;box-shadow:0 8px 24px rgba(0,0,0,.3);z-index:10000}
+
+/* Nav */
+.nav-bar{position:fixed;bottom:0;left:0;width:100%;background:rgba(12,12,12,.95);backdrop-filter:blur(20px);border-top:1px solid var(--card-border);display:flex;justify-content:space-around;padding:10px 0 8px;z-index:1000;box-shadow:0 -4px 16px rgba(0,0,0,.2)}
+.nav-btn{flex:1;background:none;border:none;display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;transition:.2s;padding:8px;border-radius:12px}
+.nav-icon{width:30px;height:30px;border-radius:10px;filter:grayscale(100%) brightness(.7)}
+.nav-label{font-size:11px;font-weight:700;color:var(--text-secondary)}
+.nav-btn.active .nav-icon{filter:grayscale(0%) brightness(1);box-shadow:0 4px 12px rgba(59,130,246,.4)}
+.nav-btn.active .nav-label{color:var(--accent-blue)}
+
+@media(max-width:768px){
+.grid-2,.grid-3{grid-template-columns:1fr}
+.stats-grid{grid-template-columns:repeat(2,1fr)}
+}
+</style>
+</head>
+<body>
+<!-- App -->
+<div id="app">
+<div class="admin-header">
+<div class="admin-title">Exotix Trade Admin Panel</div>
+<div class="admin-subtitle">Professional Trading Platform Management</div>
+</div>
+<div id="main-content"></div>
+<!-- Navigation Bar -->
+<div class="nav-bar">
+<button class="nav-btn active" data-tab="dashboard">
+<img src="https://cdn-icons-png.flaticon.com/512/2103/2103633.png" alt="Dashboard" class="nav-icon" />
+<span class="nav-label">Dashboard</span>
+</button>
+<button class="nav-btn" data-tab="users">
+<img src="https://cdn-icons-png.flaticon.com/512/1077/1077114.png" alt="Users" class="nav-icon" />
+<span class="nav-label">Users</span>
+</button>
+<button class="nav-btn" data-tab="deposits">
+<img src="https://cdn-icons-png.flaticon.com/512/3135/3135715.png" alt="Deposits" class="nav-icon" />
+<span class="nav-label">Deposits</span>
+</button>
+<button class="nav-btn" data-tab="withdrawals">
+<img src="https://cdn-icons-png.flaticon.com/512/3721/3721679.png" alt="Withdrawals" class="nav-icon" />
+<span class="nav-label">Withdrawals</span>
+</button>
+<button class="nav-btn" data-tab="tasks">
+<img src="https://cdn-icons-png.flaticon.com/512/1077/1077063.png" alt="Tasks" class="nav-icon" />
+<span class="nav-label">Tasks</span>
+</button>
+<button class="nav-btn" data-tab="settings">
+<img src="https://cdn-icons-png.flaticon.com/512/2103/2103658.png" alt="Settings" class="nav-icon" />
+<span class="nav-label">Settings</span>
+</button>
+</div>
+</div><s
+cript type="module">
+// Firebase v9 Modular
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+import {getDatabase, ref, get, set, update, onValue, off, push, query, orderByChild, equalTo, runTransaction, remove} from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js';
+
+// Config
+const firebaseConfig = {
+apiKey: "AIzaSyBfR97veh6idxb81mH6N5_Gq8-CpW2D7bE",
+authDomain: "jbhigfi.firebaseapp.com",
+databaseURL: "https://jbhigfi-default-rtdb.firebaseio.com",
+projectId: "jbhigfi",
+storageBucket: "jbhigfi.firebasestorage.app",
+messagingSenderId: "736760492095",
+appId: "1:736760492095:web:47b94412495e21c561c88a",
+measurementId: "G-ZZMHC9RTVT"
+};
+
+const app = initializeApp(firebaseConfig);
+const rtdb = getDatabase(app);
+
+// Bot
+const BOT_TOKEN = '8332448822:AAHKhDvougBhBThL6aBl3hGjZbKFGAq7BUs';
+const sendBot = async (msg, userId) => {
+try {
+await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
+method: 'POST', 
+headers: { 'Content-Type': 'application/json' },
+body: JSON.stringify({ chat_id: userId, text: msg, parse_mode: 'HTML' })
+});
+} catch (e) { console.warn('Bot send failed', e); }
+};
+
+// State
+let adminData = {
+totalUsers: 0,
+totalDeposits: 0,
+totalWithdrawals: 0,
+activeUsers: 0,
+totalAds: 0,
+totalTasks: 0,
+totalBalance: 0,
+pendingDeposits: 0,
+pendingWithdrawals: 0
+};
+
+let allUsers = {};
+let allDeposits = {};
+let allWithdrawals = {};
+let allTasks = {};
+
+// Utils
+const notify = (m, d=3000) => { 
+const n=document.createElement('div'); 
+n.className='notification'; 
+n.textContent=m; 
+document.body.appendChild(n); 
+setTimeout(()=>n.remove(), d); 
+};
+
+// Tabs
+function showTab(tab){
+document.querySelectorAll('.nav-btn').forEach(b=>b.classList.toggle('active', b.dataset.tab===tab));
+if(tab==='dashboard') renderDashboard();
+if(tab==='users') renderUsers();
+if(tab==='deposits') renderDeposits();
+if(tab==='withdrawals') renderWithdrawals();
+if(tab==='tasks') renderTasks();
+if(tab==='settings') renderSettings();
+}
+
+// Dashboard
+function renderDashboard(){
+const html = `
+<div class="stats-grid">
+<div class="stat-card">
+<div class="stat-icon">
+<img src="https://cdn-icons-png.flaticon.com/512/1077/1077114.png" alt="Users" />
+</div>
+<div class="stat-label">Total Users</div>
+<div class="stat-value" id="totalUsers">${adminData.totalUsers}</div>
+</div>
+<div class="stat-card">
+<div class="stat-icon">
+<img src="https://cdn-icons-png.flaticon.com/512/3135/3135715.png" alt="Deposits" />
+</div>
+<div class="stat-label">Total Deposits</div>
+<div class="stat-value" id="totalDeposits">$${adminData.totalDeposits.toFixed(2)}</div>
+</div>
+<div class="stat-card">
+<div class="stat-icon">
+<img src="https://cdn-icons-png.flaticon.com/512/3721/3721679.png" alt="Withdrawals" />
+</div>
+<div class="stat-label">Total Withdrawals</div>
+<div class="stat-value" id="totalWithdrawals">$${adminData.totalWithdrawals.toFixed(2)}</div>
+</div>
+<div class="stat-card">
+<div class="stat-icon">
+<img src="https://cdn-icons-png.flaticon.com/512/2103/2103633.png" alt="Active Users" />
+</div>
+<div class="stat-label">Active Users</div>
+<div class="stat-value" id="activeUsers">${adminData.activeUsers}</div>
+</div>
+<div class="stat-card">
+<div class="stat-icon">
+<img src="https://cryptologos.cc/logos/tether-usdt-logo.png" alt="Balance" />
+</div>
+<div class="stat-label">Total Balance</div>
+<div class="stat-value" id="totalBalance">$${adminData.totalBalance.toFixed(2)}</div>
+</div>
+<div class="stat-card">
+<div class="stat-icon">
+<img src="https://cdn-icons-png.flaticon.com/512/1077/1077063.png" alt="Tasks" />
+</div>
+<div class="stat-label">Total Tasks</div>
+<div class="stat-value" id="totalTasks">${adminData.totalTasks}</div>
+</div>
+<div class="stat-card">
+<div class="stat-icon">
+<img src="https://cdn-icons-png.flaticon.com/512/3135/3135715.png" alt="Pending Deposits" />
+</div>
+<div class="stat-label">Pending Deposits</div>
+<div class="stat-value" id="pendingDeposits">${adminData.pendingDeposits}</div>
+</div>
+<div class="stat-card">
+<div class="stat-icon">
+<img src="https://cdn-icons-png.flaticon.com/512/3721/3721679.png" alt="Pending Withdrawals" />
+</div>
+<div class="stat-label">Pending Withdrawals</div>
+<div class="stat-value" id="pendingWithdrawals">${adminData.pendingWithdrawals}</div>
+</div>
+</div>
+
+<div class="grid-2">
+<div class="card">
+<div class="card-title">Recent Deposits</div>
+<div id="recentDeposits">Loading...</div>
+</div>
+<div class="card">
+<div class="card-title">Recent Withdrawals</div>
+<div id="recentWithdrawals">Loading...</div>
+</div>
+</div>
+
+<div class="card">
+<div class="card-title">User Activity Chart</div>
+<canvas id="activityChart" height="300"></canvas>
+</div>
+
+<div class="grid-2">
+<div class="card">
+<div class="card-title">Top Users by Balance</div>
+<div id="topUsers">Loading...</div>
+</div>
+<div class="card">
+<div class="card-title">Recent Registrations</div>
+<div id="recentUsers">Loading...</div>
+</div>
+</div>
+`;
+
+document.getElementById('main-content').innerHTML = html;
+loadDashboardData();
+}
+
+function loadDashboardData(){
+// Load all data
+Promise.all([
+get(ref(rtdb,'users')),
+get(ref(rtdb,'admin/deposits')),
+get(ref(rtdb,'admin/withdrawals')),
+get(ref(rtdb,'tasks'))
+]).then(([usersSnap, depositsSnap, withdrawalsSnap, tasksSnap]) => {
+
+// Users data
+if(usersSnap.exists()){
+allUsers = usersSnap.val();
+adminData.totalUsers = Object.keys(allUsers).length;
+adminData.totalBalance = Object.values(allUsers).reduce((sum, u) => sum + (u.usdtBalance || 0), 0);
+adminData.activeUsers = Object.values(allUsers).filter(u => (Date.now()/1000 - u.createdAt) < 86400).length;
+
+// Top users
+const topUsers = Object.entries(allUsers)
+.sort(([,a], [,b]) => (b.usdtBalance || 0) - (a.usdtBalance || 0))
+.slice(0, 5);
+
+document.getElementById('topUsers').innerHTML = topUsers.map(([id, user]) => `
+<div style="display:flex;justify-content:space-between;padding:8px;border-bottom:1px solid var(--card-border)">
+<div>
+<div style="font-weight:700">${user.name}</div>
+<div style="font-size:12px;color:var(--text-secondary)">${id}</div>
+</div>
+<div style="color:var(--accent-green);font-weight:800">$${(user.usdtBalance || 0).toFixed(2)}</div>
+</div>
+`).join('');
+
+// Recent users
+const recentUsers = Object.entries(allUsers)
+.sort(([,a], [,b]) => b.createdAt - a.createdAt)
+.slice(0, 5);
+
+document.getElementById('recentUsers').innerHTML = recentUsers.map(([id, user]) => `
+<div style="display:flex;justify-content:space-between;padding:8px;border-bottom:1px solid var(--card-border)">
+<div>
+<div style="font-weight:700">${user.name}</div>
+<div style="font-size:12px;color:var(--text-secondary)">${id}</div>
+</div>
+<div style="font-size:11px;color:var(--text-secondary)">${new Date(user.createdAt*1000).toLocaleDateString()}</div>
+</div>
+`).join('');
+}
+
+// Deposits data
+if(depositsSnap.exists()){
+allDeposits = depositsSnap.val();
+adminData.totalDeposits = Object.values(allDeposits).reduce((sum, d) => sum + (d.amount || 0), 0);
+adminData.pendingDeposits = Object.values(allDeposits).filter(d => d.status === 'pending').length;
+
+const recent = Object.values(allDeposits).slice(-5).reverse();
+document.getElementById('recentDeposits').innerHTML = recent.map(d => `
+<div style="display:flex;justify-content:space-between;padding:8px;border-bottom:1px solid var(--card-border)">
+<div>
+<div style="font-weight:700">${d.userName}</div>
+<div style="font-size:12px;color:var(--text-secondary)">$${d.amount}</div>
+</div>
+<div>
+<span class="status-badge status-${d.status}">${d.status}</span>
+<div style="font-size:11px;color:var(--text-secondary)">${new Date(d.timestamp*1000).toLocaleDateString()}</div>
+</div>
+</div>
+`).join('');
+}
+
+// Withdrawals data
+if(withdrawalsSnap.exists()){
+allWithdrawals = withdrawalsSnap.val();
+adminData.totalWithdrawals = Object.values(allWithdrawals).reduce((sum, w) => sum + (w.amount || 0), 0);
+adminData.pendingWithdrawals = Object.values(allWithdrawals).filter(w => w.status === 'pending').length;
+
+const recent = Object.values(allWithdrawals).slice(-5).reverse();
+document.getElementById('recentWithdrawals').innerHTML = recent.map(w => `
+<div style="display:flex;justify-content:space-between;padding:8px;border-bottom:1px solid var(--card-border)">
+<div>
+<div style="font-weight:700">${w.userName}</div>
+<div style="font-size:12px;color:var(--text-secondary)">$${w.amount}</div>
+</div>
+<div>
+<span class="status-badge status-${w.status}">${w.status}</span>
+<div style="font-size:11px;color:var(--text-secondary)">${new Date(w.timestamp*1000).toLocaleDateString()}</div>
+</div>
+</div>
+`).join('');
+}
+
+// Tasks data
+if(tasksSnap.exists()){
+allTasks = tasksSnap.val();
+adminData.totalTasks = Object.keys(allTasks).length;
+}
+
+// Update UI
+document.getElementById('totalUsers').textContent = adminData.totalUsers;
+document.getElementById('totalDeposits').textContent = `$${adminData.totalDeposits.toFixed(2)}`;
+document.getElementById('totalWithdrawals').textContent = `$${adminData.totalWithdrawals.toFixed(2)}`;
+document.getElementById('activeUsers').textContent = adminData.activeUsers;
+document.getElementById('totalBalance').textContent = `$${adminData.totalBalance.toFixed(2)}`;
+document.getElementById('totalTasks').textContent = adminData.totalTasks;
+document.getElementById('pendingDeposits').textContent = adminData.pendingDeposits;
+document.getElementById('pendingWithdrawals').textContent = adminData.pendingWithdrawals;
+
+// Activity Chart
+setTimeout(()=>{
+const ctx = document.getElementById('activityChart').getContext('2d');
+new Chart(ctx, {
+type: 'line',
+data: {
+labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+datasets: [{
+label: 'New Users',
+data: [12, 19, 3, 5, 2, 3, 7],
+borderColor: '#3b82f6',
+backgroundColor: 'rgba(59, 130, 246, 0.1)',
+tension: 0.4
+}, {
+label: 'Deposits',
+data: [5, 8, 2, 3, 1, 2, 4],
+borderColor: '#10b981',
+backgroundColor: 'rgba(16, 185, 129, 0.1)',
+tension: 0.4
+}]
+},
+options: {
+responsive: true,
+plugins: { legend: { display: true } },
+scales: {
+x: { grid: { color: 'rgba(255,255,255,0.1)' }, ticks: { color: 'rgba(255,255,255,0.7)' } },
+y: { grid: { color: 'rgba(255,255,255,0.1)' }, ticks: { color: 'rgba(255,255,255,0.7)' } }
+}
+}
+});
+}, 100);
+
+});
+}
+
+// Users
+function renderUsers(){
+const html = `
+<div class="card">
+<div class="card-title">User Management</div>
+<input type="text" class="search-box" id="userSearch" placeholder="Search users by ID or name...">
+<div style="margin-bottom:16px">
+<button class="btn-primary" onclick="exportUsers()">Export Users</button>
+<button class="btn-warning" onclick="sendBroadcast()">Send Broadcast</button>
+</div>
+<div id="usersList">Loading...</div>
+</div>
+`;
+
+document.getElementById('main-content').innerHTML = html;
+loadUsers();
+
+document.getElementById('userSearch').addEventListener('input', (e) => {
+const query = e.target.value.toLowerCase();
+filterUsers(query);
+});
+}
+
+function loadUsers(){
+if(Object.keys(allUsers).length === 0) {
+get(ref(rtdb,'users')).then(s=>{
+if(s.exists()) allUsers = s.val();
+displayUsers();
+});
+} else {
+displayUsers();
+}
+}
+
+function displayUsers(){
+let html = `
+<table class="table">
+<thead>
+<tr>
+<th>Avatar</th>
+<th>Name</th>
+<th>ID</th>
+<th>Balance</th>
+<th>Referrals</th>
+<th>Created</th>
+<th>Status</th>
+<th>Actions</th>
+</tr>
+</thead>
+<tbody>
+`;
+
+Object.entries(allUsers).forEach(([id, user]) => {
+html += `
+<tr>
+<td><img src="${user.avatar}" style="width:32px;height:32px;border-radius:50%;object-fit:cover"></td>
+<td>${user.name}</td>
+<td>${id}</td>
+<td>$${(user.usdtBalance || 0).toFixed(6)}</td>
+<td>${user.referrals || 0}</td>
+<td>${new Date(user.createdAt * 1000).toLocaleDateString()}</td>
+<td><span class="status-badge ${user.banned ? 'status-rejected' : 'status-approved'}">${user.banned ? 'Banned' : 'Active'}</span></td>
+<td>
+<button class="btn-primary" onclick="editUser('${id}')">Edit</button>
+<button class="btn-${user.banned ? 'success' : 'warning'}" onclick="toggleBan('${id}')">${user.banned ? 'Unban' : 'Ban'}</button>
+<button class="btn-danger" onclick="deleteUser('${id}')">Delete</button>
+</td>
+</tr>
+`;
+});
+
+html += '</tbody></table>';
+document.getElementById('usersList').innerHTML = html;
+}
+
+function filterUsers(query){
+const rows = document.querySelectorAll('.table tbody tr');
+rows.forEach(row => {
+const text = row.textContent.toLowerCase();
+row.style.display = text.includes(query) ? '' : 'none';
+});
+}
+
+// Deposits
+function renderDeposits(){
+const html = `
+<div class="card">
+<div class="card-title">Deposit Management</div>
+<div style="margin-bottom:16px">
+<button class="btn-success" onclick="approveAllDeposits()">Approve All Pending</button>
+<button class="btn-danger" onclick="rejectAllDeposits()">Reject All Pending</button>
+</div>
+<div id="depositsList">Loading...</div>
+</div>
+`;
+
+document.getElementById('main-content').innerHTML = html;
+loadDeposits();
+}
+
+function loadDeposits(){
+if(Object.keys(allDeposits).length === 0) {
+get(ref(rtdb,'admin/deposits')).then(s=>{
+if(s.exists()) allDeposits = s.val();
+displayDeposits();
+});
+} else {
+displayDeposits();
+}
+}
+
+function displayDeposits(){
+let html = `
+<table class="table">
+<thead>
+<tr>
+<th>User</th>
+<th>Amount</th>
+<th>TX Hash</th>
+<th>Memo</th>
+<th>Status</th>
+<th>Date</th>
+<th>Actions</th>
+</tr>
+</thead>
+<tbody>
+`;
+
+Object.entries(allDeposits).forEach(([id, deposit]) => {
+html += `
+<tr>
+<td>
+<div style="font-weight:700">${deposit.userName}</div>
+<div style="font-size:11px;color:var(--text-secondary)">${deposit.userId}</div>
+</td>
+<td>$${deposit.amount.toFixed(2)}</td>
+<td style="font-family:monospace;font-size:11px;max-width:150px;overflow:hidden;text-overflow:ellipsis">${deposit.txHash}</td>
+<td style="font-family:monospace;font-size:11px">${deposit.memo || 'N/A'}</td>
+<td><span class="status-badge status-${deposit.status}">${deposit.status}</span></td>
+<td>${new Date(deposit.timestamp * 1000).toLocaleString()}</td>
+<td>
+${deposit.status === 'pending' ? `
+<button class="btn-success" onclick="approveDeposit('${id}', '${deposit.userId}', ${deposit.amount})">Approve</button>
+<button class="btn-danger" onclick="rejectDeposit('${id}', '${deposit.userId}')">Reject</button>
+` : ''}
+</td>
+</tr>
+`;
+});
+
+html += '</tbody></table>';
+document.getElementById('depositsList').innerHTML = html;
+}
+
+// Withdrawals
+function renderWithdrawals(){
+const html = `
+<div class="card">
+<div class="card-title">Withdrawal Management</div>
+<div style="margin-bottom:16px">
+<button class="btn-success" onclick="approveAllWithdrawals()">Approve All Pending</button>
+<button class="btn-danger" onclick="rejectAllWithdrawals()">Reject All Pending</button>
+</div>
+<div id="withdrawalsList">Loading...</div>
+</div>
+`;
+
+document.getElementById('main-content').innerHTML = html;
+loadWithdrawals();
+}
+
+function loadWithdrawals(){
+if(Object.keys(allWithdrawals).length === 0) {
+get(ref(rtdb,'admin/withdrawals')).then(s=>{
+if(s.exists()) allWithdrawals = s.val();
+displayWithdrawals();
+});
+} else {
+displayWithdrawals();
+}
+}
+
+function displayWithdrawals(){
+let html = `
+<table class="table">
+<thead>
+<tr>
+<th>User</th>
+<th>Amount</th>
+<th>Address</th>
+<th>Memo</th>
+<th>Status</th>
+<th>Date</th>
+<th>Actions</th>
+</tr>
+</thead>
+<tbody>
+`;
+
+Object.entries(allWithdrawals).forEach(([id, withdrawal]) => {
+html += `
+<tr>
+<td>
+<div style="font-weight:700">${withdrawal.userName}</div>
+<div style="font-size:11px;color:var(--text-secondary)">${withdrawal.userId}</div>
+</td>
+<td>$${withdrawal.amount.toFixed(2)}</td>
+<td style="font-family:monospace;font-size:11px;max-width:150px;overflow:hidden;text-overflow:ellipsis">${withdrawal.address}</td>
+<td style="font-family:monospace;font-size:11px">${withdrawal.memo || 'N/A'}</td>
+<td><span class="status-badge status-${withdrawal.status}">${withdrawal.status}</span></td>
+<td>${new Date(withdrawal.timestamp * 1000).toLocaleString()}</td>
+<td>
+${withdrawal.status === 'pending' ? `
+<button class="btn-success" onclick="approveWithdrawal('${id}', '${withdrawal.userId}', ${withdrawal.amount})">Approve</button>
+<button class="btn-danger" onclick="rejectWithdrawal('${id}', '${withdrawal.userId}', ${withdrawal.amount})">Reject</button>
+` : ''}
+</td>
+</tr>
+`;
+});
+
+html += '</tbody></table>';
+document.getElementById('withdrawalsList').innerHTML = html;
+}// Tasks
+f
+unction renderTasks(){
+const html = `
+<div class="grid-2">
+<div class="card">
+<div class="card-title">Add New Task</div>
+<div class="form-group">
+<label class="form-label">Task Name</label>
+<input type="text" class="form-input" id="taskName" placeholder="Enter task name">
+</div>
+<div class="form-group">
+<label class="form-label">Category</label>
+<select class="form-select" id="taskCategory">
+<option value="Project">Project</option>
+<option value="Partner">Partner</option>
+<option value="Advertise">Advertise</option>
+</select>
+</div>
+<div class="form-group">
+<label class="form-label">Reward Amount (USDT)</label>
+<input type="number" step="0.01" class="form-input" id="taskAmount" placeholder="Enter reward amount">
+</div>
+<div class="form-group">
+<label class="form-label">Task Link</label>
+<input type="url" class="form-input" id="taskLink" placeholder="Enter task URL">
+</div>
+<div class="form-group">
+<label class="form-label">Task Photo URL</label>
+<input type="url" class="form-input" id="taskPhoto" placeholder="Enter photo URL">
+</div>
+<button class="btn-primary" onclick="addTask()">Add Task</button>
+</div>
+<div class="card">
+<div class="card-title">Existing Tasks</div>
+<div id="tasksList">Loading...</div>
+</div>
+</div>
+`;
+
+document.getElementById('main-content').innerHTML = html;
+loadTasks();
+}
+
+function loadTasks(){
+if(Object.keys(allTasks).length === 0) {
+get(ref(rtdb,'tasks')).then(s=>{
+if(s.exists()) allTasks = s.val();
+displayTasks();
+});
+} else {
+displayTasks();
+}
+}
+
+function displayTasks(){
+let html = '';
+Object.entries(allTasks).forEach(([id, task]) => {
+html += `
+<div style="border:1px solid var(--card-border);border-radius:8px;padding:12px;margin-bottom:8px">
+<div style="display:flex;justify-content:space-between;align-items:center">
+<div>
+<div style="font-weight:700">${task.name}</div>
+<div style="font-size:12px;color:var(--text-secondary)">${task.category} • $${task.amount} USDT</div>
+<div style="font-size:11px;color:var(--text-secondary);margin-top:4px">
+<a href="${task.link}" target="_blank" style="color:var(--accent-blue)">View Link</a>
+</div>
+</div>
+<div>
+<button class="btn-warning" onclick="editTask('${id}')">Edit</button>
+<button class="btn-danger" onclick="deleteTask('${id}')">Delete</button>
+</div>
+</div>
+</div>
+`;
+});
+
+document.getElementById('tasksList').innerHTML = html || '<div style="text-align:center;color:var(--text-secondary)">No tasks found</div>';
+}
+
+// Settings
+function renderSettings(){
+const html = `
+<div class="grid-2">
+<div class="card">
+<div class="card-title">Generate Redeem Code</div>
+<div class="form-group">
+<label class="form-label">Code (8 characters)</label>
+<input type="text" class="form-input" id="redeemCode" placeholder="Enter custom code or leave blank for random" maxlength="8">
+</div>
+<div class="form-group">
+<label class="form-label">Max Users</label>
+<input type="number" class="form-input" id="redeemMaxUsers" placeholder="How many users can claim">
+</div>
+<div class="form-group">
+<label class="form-label">Reward per User (USDT)</label>
+<input type="number" step="0.01" class="form-input" id="redeemReward" placeholder="USDT amount per user">
+</div>
+<button class="btn-primary" onclick="generateRedeemCode()">Generate Code</button>
+</div>
+
+<div class="card">
+<div class="card-title">User Balance Management</div>
+<div class="form-group">
+<label class="form-label">User ID</label>
+<input type="text" class="form-input" id="balanceUserId" placeholder="Enter user ID">
+</div>
+<div class="form-group">
+<label class="form-label">Amount</label>
+<input type="number" step="0.01" class="form-input" id="balanceAmount" placeholder="Enter amount">
+</div>
+<div class="form-group">
+<label class="form-label">Action</label>
+<select class="form-select" id="balanceAction">
+<option value="add">Add Balance</option>
+<option value="subtract">Subtract Balance</option>
+<option value="set">Set Balance</option>
+</select>
+</div>
+<button class="btn-primary" onclick="updateUserBalance()">Update Balance</button>
+</div>
+</div>
+
+<div class="grid-2">
+<div class="card">
+<div class="card-title">Broadcast Message</div>
+<div class="form-group">
+<label class="form-label">Message</label>
+<textarea class="form-input" id="broadcastMessage" rows="4" placeholder="Enter broadcast message"></textarea>
+</div>
+<div class="form-group">
+<label class="form-label">Target</label>
+<select class="form-select" id="broadcastTarget">
+<option value="all">All Users</option>
+<option value="active">Active Users Only</option>
+<option value="high_balance">High Balance Users (>$100)</option>
+</select>
+</div>
+<button class="btn-warning" onclick="sendBroadcastMessage()">Send Broadcast</button>
+</div>
+
+<div class="card">
+<div class="card-title">System Settings</div>
+<div class="form-group">
+<label class="form-label">Minimum Deposit (USDT)</label>
+<input type="number" step="0.01" class="form-input" id="minDeposit" value="20">
+</div>
+<div class="form-group">
+<label class="form-label">Minimum Withdrawal (USDT)</label>
+<input type="number" step="0.01" class="form-input" id="minWithdrawal" value="0.10">
+</div>
+<div class="form-group">
+<label class="form-label">Ad Reward (USDT)</label>
+<input type="number" step="0.000001" class="form-input" id="adReward" value="0.000106">
+</div>
+<button class="btn-primary" onclick="updateSystemSettings()">Update Settings</button>
+</div>
+</div>
+
+<div class="card">
+<div class="card-title">Active Redeem Codes</div>
+<div id="redeemCodesList">Loading...</div>
+</div>
+`;
+
+document.getElementById('main-content').innerHTML = html;
+loadRedeemCodes();
+}
+
+function loadRedeemCodes(){
+get(ref(rtdb,'redeemCodes')).then(s=>{
+if(s.exists()){
+const codes = s.val();
+let html = `
+<table class="table">
+<thead>
+<tr>
+<th>Code</th>
+<th>Max Users</th>
+<th>Used</th>
+<th>Reward</th>
+<th>Created</th>
+<th>Actions</th>
+</tr>
+</thead>
+<tbody>
+`;
+
+Object.entries(codes).forEach(([code, data]) => {
+html += `
+<tr>
+<td style="font-family:monospace;font-weight:800">${code}</td>
+<td>${data.maxUsers}</td>
+<td>${data.used || 0}</td>
+<td>$${data.reward || 'Variable'}</td>
+<td>${new Date(data.createdAt * 1000).toLocaleDateString()}</td>
+<td>
+<button class="btn-danger" onclick="deleteRedeemCode('${code}')">Delete</button>
+</td>
+</tr>
+`;
+});
+
+html += '</tbody></table>';
+document.getElementById('redeemCodesList').innerHTML = html;
+} else {
+document.getElementById('redeemCodesList').innerHTML = '<div style="text-align:center;color:var(--text-secondary)">No redeem codes found</div>';
+}
+});
+}
+
+// Global Functions
+window.editUser = function(userId){
+const user = allUsers[userId];
+if(!user) return;
+
+const newBalance = prompt('Enter new balance:', user.usdtBalance || 0);
+if(newBalance !== null){
+update(ref(rtdb, `users/${userId}`), { 
+usdtBalance: parseFloat(newBalance) 
+}).then(() => {
+allUsers[userId].usdtBalance = parseFloat(newBalance);
+notify('User balance updated');
+sendBot(`💰 <b>Balance Updated by Admin</b>\nNew Balance: $${parseFloat(newBalance).toFixed(6)} USDT`, userId);
+displayUsers();
+}).catch(() => notify('Failed to update balance'));
+}
+};
+
+window.toggleBan = function(userId){
+const user = allUsers[userId];
+const newStatus = !user.banned;
+const action = newStatus ? 'ban' : 'unban';
+
+if(confirm(`Are you sure you want to ${action} this user?`)){
+update(ref(rtdb, `users/${userId}`), { 
+banned: newStatus 
+}).then(() => {
+allUsers[userId].banned = newStatus;
+notify(`User ${action}ned`);
+sendBot(`⚠️ <b>Account ${newStatus ? 'Banned' : 'Unbanned'}</b>\nYour account has been ${newStatus ? 'banned' : 'unbanned'} by admin.`, userId);
+displayUsers();
+}).catch(() => notify(`Failed to ${action} user`));
+}
+};
+
+window.deleteUser = function(userId){
+if(confirm('Are you sure you want to delete this user? This action cannot be undone!')){
+remove(ref(rtdb, `users/${userId}`)).then(() => {
+delete allUsers[userId];
+notify('User deleted');
+displayUsers();
+}).catch(() => notify('Failed to delete user'));
+}
+};
+
+window.approveDeposit = function(depositId, userId, amount){
+// Update deposit status
+update(ref(rtdb, `admin/deposits/${depositId}`), { 
+status: 'approved' 
+}).then(() => {
+// Add balance to user
+get(ref(rtdb, `users/${userId}`)).then(s => {
+if(s.exists()){
+const user = s.val();
+const newBalance = (user.usdtBalance || 0) + amount;
+update(ref(rtdb, `users/${userId}`), { 
+usdtBalance: newBalance 
+}).then(() => {
+allDeposits[depositId].status = 'approved';
+if(allUsers[userId]) allUsers[userId].usdtBalance = newBalance;
+sendBot(`✅ <b>Deposit Approved</b>\nAmount: $${amount.toFixed(2)} USDT\nStatus: Approved\nBalance: $${newBalance.toFixed(6)} USDT`, userId);
+notify('Deposit approved');
+displayDeposits();
+});
+}
+});
+});
+};
+
+window.rejectDeposit = function(depositId, userId){
+update(ref(rtdb, `admin/deposits/${depositId}`), { 
+status: 'rejected' 
+}).then(() => {
+allDeposits[depositId].status = 'rejected';
+sendBot(`❌ <b>Deposit Rejected</b>\nYour deposit request has been rejected. Please contact support if you have any questions.`, userId);
+notify('Deposit rejected');
+displayDeposits();
+});
+};
+
+window.approveWithdrawal = function(withdrawalId, userId, amount){
+// Update withdrawal status
+update(ref(rtdb, `admin/withdrawals/${withdrawalId}`), { 
+status: 'approved' 
+}).then(() => {
+allWithdrawals[withdrawalId].status = 'approved';
+sendBot(`✅ <b>Withdrawal Approved</b>\nAmount: $${amount.toFixed(2)} USDT\nStatus: Approved\nYour funds have been sent to your wallet.`, userId);
+notify('Withdrawal approved');
+displayWithdrawals();
+});
+};
+
+window.rejectWithdrawal = function(withdrawalId, userId, amount){
+update(ref(rtdb, `admin/withdrawals/${withdrawalId}`), { 
+status: 'rejected' 
+}).then(() => {
+// Return balance to user
+get(ref(rtdb, `users/${userId}`)).then(s => {
+if(s.exists()){
+const user = s.val();
+const newBalance = (user.usdtBalance || 0) + amount;
+update(ref(rtdb, `users/${userId}`), { 
+usdtBalance: newBalance 
+}).then(() => {
+allWithdrawals[withdrawalId].status = 'rejected';
+if(allUsers[userId]) allUsers[userId].usdtBalance = newBalance;
+sendBot(`❌ <b>Withdrawal Rejected</b>\nAmount: $${amount.toFixed(2)} USDT returned to your balance.\nReason: Please contact support for details.`, userId);
+notify('Withdrawal rejected and balance returned');
+displayWithdrawals();
+});
+}
+});
+});
+};
+
+window.addTask = function(){
+const name = document.getElementById('taskName').value;
+const category = document.getElementById('taskCategory').value;
+const amount = parseFloat(document.getElementById('taskAmount').value);
+const link = document.getElementById('taskLink').value;
+const photo = document.getElementById('taskPhoto').value;
+
+if(!name || !amount || !link || !photo){
+notify('Please fill all fields');
+return;
+}
+
+const taskId = 'task_' + Date.now();
+set(ref(rtdb, `tasks/${taskId}`), {
+name, category, amount, link, photo, createdAt: Date.now()/1000
+}).then(() => {
+allTasks[taskId] = {name, category, amount, link, photo, createdAt: Date.now()/1000};
+notify('Task added successfully');
+document.getElementById('taskName').value = '';
+document.getElementById('taskAmount').value = '';
+document.getElementById('taskLink').value = '';
+document.getElementById('taskPhoto').value = '';
+displayTasks();
+});
+};
+
+window.editTask = function(taskId){
+const task = allTasks[taskId];
+if(!task) return;
+
+const newName = prompt('Task name:', task.name);
+if(newName === null) return;
+
+const newAmount = prompt('Reward amount:', task.amount);
+if(newAmount === null) return;
+
+const newLink = prompt('Task link:', task.link);
+if(newLink === null) return;
+
+update(ref(rtdb, `tasks/${taskId}`), {
+name: newName,
+amount: parseFloat(newAmount),
+link: newLink
+}).then(() => {
+allTasks[taskId] = {...allTasks[taskId], name: newName, amount: parseFloat(newAmount), link: newLink};
+notify('Task updated');
+displayTasks();
+});
+};
+
+window.deleteTask = function(taskId){
+if(confirm('Are you sure you want to delete this task?')){
+remove(ref(rtdb, `tasks/${taskId}`)).then(() => {
+delete allTasks[taskId];
+notify('Task deleted');
+displayTasks();
+});
+}
+};
+
+window.generateRedeemCode = function(){
+const customCode = document.getElementById('redeemCode').value.trim();
+const maxUsers = parseInt(document.getElementById('redeemMaxUsers').value);
+const reward = parseFloat(document.getElementById('redeemReward').value);
+
+if(!maxUsers || !reward){
+notify('Please fill all fields');
+return;
+}
+
+const code = customCode || Math.random().toString(36).substring(2, 10).toUpperCase();
+
+set(ref(rtdb, `redeemCodes/${code}`), {
+maxUsers, 
+reward,
+used: 0, 
+createdAt: Date.now()/1000
+}).then(() => {
+notify(`Redeem code generated: ${code}`);
+document.getElementById('redeemCode').value = '';
+document.getElementById('redeemMaxUsers').value = '';
+document.getElementById('redeemReward').value = '';
+loadRedeemCodes();
+});
+};
+
+window.deleteRedeemCode = function(code){
+if(confirm('Are you sure you want to delete this redeem code?')){
+remove(ref(rtdb, `redeemCodes/${code}`)).then(() => {
+notify('Redeem code deleted');
+loadRedeemCodes();
+});
+}
+};
+
+window.updateUserBalance = function(){
+const userId = document.getElementById('balanceUserId').value;
+const amount = parseFloat(document.getElementById('balanceAmount').value);
+const action = document.getElementById('balanceAction').value;
+
+if(!userId || !amount){
+notify('Please fill all fields');
+return;
+}
+
+get(ref(rtdb, `users/${userId}`)).then(s => {
+if(s.exists()){
+const user = s.val();
+let newBalance = user.usdtBalance || 0;
+
+switch(action){
+case 'add': newBalance += amount; break;
+case 'subtract': newBalance = Math.max(0, newBalance - amount); break;
+case 'set': newBalance = amount; break;
+}
+
+update(ref(rtdb, `users/${userId}`), { 
+usdtBalance: newBalance 
+}).then(() => {
+if(allUsers[userId]) allUsers[userId].usdtBalance = newBalance;
+sendBot(`💰 <b>Balance Updated by Admin</b>\nAction: ${action}\nAmount: $${amount.toFixed(2)} USDT\nNew Balance: $${newBalance.toFixed(6)} USDT`, userId);
+notify('User balance updated');
+document.getElementById('balanceUserId').value = '';
+document.getElementById('balanceAmount').value = '';
+});
+} else {
+notify('User not found');
+}
+});
+};
+
+window.sendBroadcastMessage = function(){
+const message = document.getElementById('broadcastMessage').value.trim();
+const target = document.getElementById('broadcastTarget').value;
+
+if(!message){
+notify('Please enter a message');
+return;
+}
+
+let targetUsers = [];
+switch(target){
+case 'all':
+targetUsers = Object.keys(allUsers);
+break;
+case 'active':
+targetUsers = Object.entries(allUsers)
+.filter(([,user]) => (Date.now()/1000 - user.createdAt) < 86400*7)
+.map(([id]) => id);
+break;
+case 'high_balance':
+targetUsers = Object.entries(allUsers)
+.filter(([,user]) => (user.usdtBalance || 0) > 100)
+.map(([id]) => id);
+break;
+}
+
+if(confirm(`Send message to ${targetUsers.length} users?`)){
+let sent = 0;
+targetUsers.forEach((userId, index) => {
+setTimeout(() => {
+sendBot(`📢 <b>Admin Broadcast</b>\n\n${message}`, userId).then(() => {
+sent++;
+if(sent === targetUsers.length){
+notify(`Broadcast sent to ${sent} users`);
+}
+});
+}, index * 100); // Delay to avoid rate limits
+});
+document.getElementById('broadcastMessage').value = '';
+}
+};
+
+window.updateSystemSettings = function(){
+const minDeposit = parseFloat(document.getElementById('minDeposit').value);
+const minWithdrawal = parseFloat(document.getElementById('minWithdrawal').value);
+const adReward = parseFloat(document.getElementById('adReward').value);
+
+set(ref(rtdb, 'systemSettings'), {
+minDeposit,
+minWithdrawal,
+adReward,
+updatedAt: Date.now()/1000
+}).then(() => {
+notify('System settings updated');
+});
+};
+
+window.exportUsers = function(){
+const csv = 'ID,Name,Balance,Referrals,Created\n' + 
+Object.entries(allUsers).map(([id, user]) => 
+`${id},"${user.name}",${user.usdtBalance || 0},${user.referrals || 0},${new Date(user.createdAt * 1000).toISOString()}`
+).join('\n');
+
+const blob = new Blob([csv], { type: 'text/csv' });
+const url = window.URL.createObjectURL(blob);
+const a = document.createElement('a');
+a.href = url;
+a.download = 'users_export.csv';
+a.click();
+window.URL.revokeObjectURL(url);
+notify('Users exported');
+};
+
+window.approveAllDeposits = function(){
+const pending = Object.entries(allDeposits).filter(([,d]) => d.status === 'pending');
+if(pending.length === 0){
+notify('No pending deposits');
+return;
+}
+
+if(confirm(`Approve ${pending.length} pending deposits?`)){
+pending.forEach(([id, deposit]) => {
+approveDeposit(id, deposit.userId, deposit.amount);
+});
+}
+};
+
+window.rejectAllDeposits = function(){
+const pending = Object.entries(allDeposits).filter(([,d]) => d.status === 'pending');
+if(pending.length === 0){
+notify('No pending deposits');
+return;
+}
+
+if(confirm(`Reject ${pending.length} pending deposits?`)){
+pending.forEach(([id, deposit]) => {
+rejectDeposit(id, deposit.userId);
+});
+}
+};
+
+window.approveAllWithdrawals = function(){
+const pending = Object.entries(allWithdrawals).filter(([,w]) => w.status === 'pending');
+if(pending.length === 0){
+notify('No pending withdrawals');
+return;
+}
+
+if(confirm(`Approve ${pending.length} pending withdrawals?`)){
+pending.forEach(([id, withdrawal]) => {
+approveWithdrawal(id, withdrawal.userId, withdrawal.amount);
+});
+}
+};
+
+window.rejectAllWithdrawals = function(){
+const pending = Object.entries(allWithdrawals).filter(([,w]) => w.status === 'pending');
+if(pending.length === 0){
+notify('No pending withdrawals');
+return;
+}
+
+if(confirm(`Reject ${pending.length} pending withdrawals?`)){
+pending.forEach(([id, withdrawal]) => {
+rejectWithdrawal(id, withdrawal.userId, withdrawal.amount);
+});
+}
+};
+
+// Nav events
+document.querySelectorAll('.nav-btn').forEach(btn=>{
+btn.addEventListener('click', ()=>showTab(btn.dataset.tab));
+});
+
+// Initialize
+showTab('dashboard');
+</script>
+</body>
+</html>
